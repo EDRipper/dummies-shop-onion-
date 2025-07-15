@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@theme {
+    --font-sans: "Fraunces Variable", system-ui, sans-serif;
+    --color-background: #e6cfb5;
+    --color-card: #f5e9d4;
+    /* --color-foreground: #552200; */
+}
+
+body {
+    @apply bg-background;
+}

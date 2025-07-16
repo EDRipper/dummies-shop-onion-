@@ -1,15 +1,21 @@
 <script lang="ts">
 	import type { ShopItem } from '$lib/server/db/schema';
+	import confetti from 'canvas-confetti';
+	import { invalidateAll } from '$app/navigation';
+
 	interface Props {
 		item: ShopItem;
+		userTokens: number;
 	}
-	const { item }: Props = $props();
+	const { item, userTokens }: Props = $props();
 
 	let isOrdering = $state(false);
 	let orderMessage = $state('');
 
+	const canAfford = $derived(userTokens >= item.price);
+
 	async function handleBuy() {
-		if (isOrdering) return;
+		if (isOrdering || !canAfford) return;
 
 		isOrdering = true;
 		orderMessage = '';
@@ -27,6 +33,14 @@
 
 			if (response.ok) {
 				orderMessage = result.message || 'Order placed successfully!';
+				// Trigger confetti effect
+				confetti({
+					particleCount: 100,
+					spread: 70,
+					origin: { y: 0.6 }
+				});
+				// Refresh data to update token count
+				window.location.reload();
 			} else {
 				orderMessage = result.error || 'Failed to place order';
 			}
@@ -46,10 +60,13 @@
 		<span class="text-lg font-bold">{item.price} tokens</span>
 		<button
 			onclick={handleBuy}
-			disabled={isOrdering}
-			class="rounded-full bg-blue-600 px-8 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+			disabled={isOrdering || !canAfford}
+			class="rounded-full px-8 py-2 text-white transition-colors disabled:cursor-not-allowed {canAfford &&
+			!isOrdering
+				? 'bg-blue-600 hover:bg-blue-700'
+				: 'bg-gray-400'}"
 		>
-			{isOrdering ? 'Ordering...' : 'Buy'}
+			{isOrdering ? 'Ordering...' : !canAfford ? 'Not enough tokens' : 'Buy'}
 		</button>
 	</div>
 	{#if orderMessage}

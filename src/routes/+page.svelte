@@ -14,7 +14,7 @@
 	</p>
 	<ul class="mt-8 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
 		{#each items as item}
-			<ItemCard {item} />
+			<ItemCard {item} userTokens={user.tokens} />
 		{/each}
 	</ul>
 </div>

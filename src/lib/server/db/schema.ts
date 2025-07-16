@@ -61,7 +61,7 @@ export const usersWithTokens = pgView('users_with_tokens').as((qb) => {
 					0
 				) - 
 				COALESCE(
-					(SELECT SUM("priceAtOrder") FROM shop_orders WHERE "userId" = "user"."slackId"), 
+					(SELECT SUM("priceAtOrder") FROM shop_orders WHERE "userId" = "user"."slackId" AND status IN ('pending', 'fulfilled')), 
 					0
 				),
 				0

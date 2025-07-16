@@ -15,6 +15,13 @@
       "when": 1752626334399,
       "tag": "0001_nice_thena",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1752627981744,
+      "tag": "0002_dear_matthew_murdock",
+      "breakpoints": true
     }
   ]
 }

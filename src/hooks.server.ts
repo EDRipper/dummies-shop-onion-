@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 const slackMiddleware: Handle = async ({ event, resolve }) => {
   // we might not have the record yet
   if (event.url.toString().includes("slack-callback")) return resolve(event);
+  if (event.url.toString().includes("/api/uploadthing")) return resolve(event);
 
   const start = performance.now();
   const sessionCookie = event.cookies.get("session");
@@ -35,6 +36,8 @@ const slackMiddleware: Handle = async ({ event, resolve }) => {
 };
 
 const redirectMiddleware: Handle = async ({ event, resolve }) => {
+  if (event.url.toString().includes("/api/uploadthing")) return resolve(event);
+  
   if (
     !event.locals.user &&
     event.url.pathname !== "/api/slack-callback"

@@ -12,7 +12,7 @@
 		You have {user.tokens == 0 ? 'no' : user.tokens}
 		{user.tokens === 1 ? 'token' : 'tokens'}.
 	</p>
-	<ul class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
+	<ul class="mt-8 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
 		{#each items as item}
 			<ItemCard {item} />
 		{/each}

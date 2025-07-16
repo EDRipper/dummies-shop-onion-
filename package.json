@@ -38,8 +38,10 @@
 	"dependencies": {
 		"@fontsource-variable/fraunces": "^5.2.7",
 		"@types/pg": "^8.15.4",
+		"@uploadthing/svelte": "^7.3.2",
 		"drizzle-orm": "^0.44.3",
 		"nanoid": "^5.1.5",
-		"pg": "^8.16.3"
+		"pg": "^8.16.3",
+		"uploadthing": "^7.7.3"
 	}
 }

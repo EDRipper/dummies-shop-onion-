@@ -1,16 +1,16 @@
 @import 'tailwindcss';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
-@import "uploadthing/tw/v4";
+@import 'uploadthing/tw/v4';
 @source "../node_modules/@uploadthing/svelte/dist";
 
 @theme {
-    --font-sans: "Fraunces Variable", system-ui, sans-serif;
-    --color-background: #e6cfb5;
-    --color-card: #f5e9d4;
-    /* --color-foreground: #552200; */
+	--font-sans: 'Fraunces Variable', system-ui, sans-serif;
+	--color-background: #e6cfb5;
+	--color-card: #f5e9d4;
+	/* --color-foreground: #552200; */
 }
 
 body {
-    @apply bg-background;
+	@apply bg-background;
 }

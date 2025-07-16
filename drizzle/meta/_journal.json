@@ -8,6 +8,13 @@
       "when": 1752615395833,
       "tag": "0000_rich_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1752626334399,
+      "tag": "0001_nice_thena",
+      "breakpoints": true
     }
   ]
 }

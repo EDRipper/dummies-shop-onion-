@@ -8,7 +8,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	}
 
 	const items = await db.select().from(shopItems);
-	
+
 	return {
 		items
 	};

@@ -24,7 +24,7 @@ export const actions: Actions = {
 		const hcbMids = formData.get('hcbMids') as string;
 
 		if (!name || !description || !imageUrl || !price || !type) {
-			return fail(400, { 
+			return fail(400, {
 				error: 'All fields are required',
 				name,
 				description,
@@ -42,12 +42,12 @@ export const actions: Actions = {
 				imageUrl,
 				price,
 				type,
-				hcbMids: hcbMids ? hcbMids.split(',').map(mid => mid.trim()) : null
+				hcbMids: hcbMids ? hcbMids.split(',').map((mid) => mid.trim()) : null
 			});
 
 			return { success: true };
 		} catch (error) {
-			return fail(500, { 
+			return fail(500, {
 				error: 'Failed to create item',
 				name,
 				description,

@@ -1,0 +1,1 @@
+ALTER TABLE "shop_orders" ADD COLUMN "status" varchar DEFAULT 'pending' NOT NULL;

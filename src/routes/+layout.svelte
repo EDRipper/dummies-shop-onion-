@@ -11,10 +11,7 @@
 		<nav class="border-b border-gray-200 bg-white px-4 py-2">
 			<div class="flex items-center justify-between">
 				<a href="/" class="text-lg font-semibold text-gray-900">Emporium</a>
-				<a
-					href="/admin"
-					class="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
-				>
+				<a href="/admin" class="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700">
 					Admin
 				</a>
 			</div>

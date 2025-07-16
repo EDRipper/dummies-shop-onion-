@@ -13,11 +13,20 @@
 				<a href="/" class="text-xl font-bold text-gray-900">Emporium</a>
 				<div class="flex items-center gap-4">
 					<div class="flex items-center gap-3">
-						<img
-							src={data.user.avatarUrl}
-							alt="Profile"
-							class="h-8 w-8 rounded-full object-cover"
-						/>
+						<div class="relative">
+							<img
+								src={data.user.avatarUrl}
+								alt="Profile"
+								class="h-8 w-8 rounded-full object-cover"
+							/>
+							{#if data.user.isAdmin}
+								<div
+									class="absolute -right-1 -bottom-1 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 text-xs"
+								>
+									⚡
+								</div>
+							{/if}
+						</div>
 						<div class="text-sm">
 							<div class="font-medium text-gray-900">
 								{data.user.tokens}

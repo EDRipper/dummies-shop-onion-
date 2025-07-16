@@ -9,6 +9,9 @@
 	<div class="flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Admin Dashboard</h1>
 		<div class="flex space-x-3">
+			<a href="/admin/users" class="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
+				View Users
+			</a>
 			<a href="/admin/orders" class="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
 				View Orders
 			</a>

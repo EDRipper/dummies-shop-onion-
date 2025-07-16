@@ -26,6 +26,7 @@
 		"@tailwindcss/vite": "^4.1.11",
 		"@types/canvas-confetti": "^1.9.0",
 		"@types/node": "^18.19.119",
+		"csv-parse": "^6.0.0",
 		"drizzle-kit": "^0.31.4",
 		"prettier": "^3.6.2",
 		"prettier-plugin-svelte": "^3.4.0",

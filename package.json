@@ -4,7 +4,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "dotenvx run -- vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -45,6 +45,7 @@
 		"drizzle-orm": "^0.44.3",
 		"nanoid": "^5.1.5",
 		"pg": "^8.16.3",
+		"svelte-sonner": "^1.0.5",
 		"uploadthing": "^7.7.3"
 	}
 }

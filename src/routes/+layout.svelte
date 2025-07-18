@@ -2,6 +2,7 @@
 	import '@fontsource-variable/fraunces';
 	import '../app.css';
 	import type { LayoutData } from './$types';
+	import { Toaster } from 'svelte-sonner';
 
 	let { children, data }: { children: any; data: LayoutData } = $props();
 </script>
@@ -48,5 +49,6 @@
 	{/if}
 	<main class="w-full px-4 py-6">
 		{@render children()}
+		<Toaster />
 	</main>
 </div>

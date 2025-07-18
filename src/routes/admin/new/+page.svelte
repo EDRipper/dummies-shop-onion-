@@ -4,10 +4,26 @@
 
 	import { createUploader } from '$lib/utils/uploadthing';
 	import { UploadDropzone } from '@uploadthing/svelte';
+	import { toast } from 'svelte-sonner';
 
 	let { form, data }: { form: ActionData; data: PageData } = $props();
 
 	let imageUrl = $state('');
+
+	$effect(() => {
+		if (form?.success) {
+			// clear image url since it doesn't seem to be cleared automatically
+			imageUrl = '';
+			toast.success('Item created successfully!', {
+				duration: 3000,
+			});
+		}
+		if (form?.error) {
+			toast.error(`Error: ${form.error}`, {
+				duration: 5000,
+			});
+		}
+	})
 
 	const uploader = createUploader('imageUploader', {
 		onClientUploadComplete: (res) => {
@@ -21,18 +37,6 @@
 
 <div class="mx-auto max-w-2xl space-y-6">
 	<h1 class="text-3xl font-bold">Add New Item</h1>
-
-	{#if form?.success}
-		<div class="rounded-md bg-green-50 p-4">
-			<p class="text-green-800">Item created successfully!</p>
-		</div>
-	{/if}
-
-	{#if form?.error}
-		<div class="rounded-md bg-red-50 p-4">
-			<p class="text-red-800">{form.error}</p>
-		</div>
-	{/if}
 
 	<form method="POST" use:enhance class="space-y-4">
 		<div>

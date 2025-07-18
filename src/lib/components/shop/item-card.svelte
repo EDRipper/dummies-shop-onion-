@@ -2,6 +2,7 @@
 	import type { ShopItem } from '$lib/server/db/schema';
 	import confetti from 'canvas-confetti';
 	import { invalidateAll } from '$app/navigation';
+	import { toast } from 'svelte-sonner';
 
 	interface Props {
 		item: ShopItem;
@@ -33,7 +34,6 @@
 
 			if (response.ok) {
 				orderMessage = result.message || 'Order placed successfully!';
-				// Trigger confetti effect
 				confetti({
 					particleCount: 100,
 					spread: 70,

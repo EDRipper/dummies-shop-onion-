@@ -35,6 +35,9 @@
 							</div>
 						</div>
 					</div>
+					<a href="/orders" class="rounded bg-gray-100 px-3 py-1 text-sm text-gray-700 hover:bg-gray-200">
+						Orders
+					</a>
 					{#if data.user.isAdmin}
 						<a
 							href="/admin"

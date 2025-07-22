@@ -26,6 +26,12 @@
 	// Show/hide filters
 	let showFilters = $state(false);
 	
+	// Customer combobox state
+	let customerComboboxOpen = $state(false);
+	let customerSearchTerm = $state('');
+	let customerComboboxRef = $state<HTMLDivElement>();
+	let customerInputRef = $state<HTMLInputElement>();
+	
 	// Loading state for order updates
 	let updatingOrders = $state(new Set<string>());
 	
@@ -33,6 +39,22 @@
 	let toastMessage = $state('');
 	let toastType = $state<'success' | 'error'>('success');
 	let showToast = $state(false);
+	
+	// Filter customers based on search term
+	const filteredCustomers = $derived(() => {
+		if (!customerSearchTerm) return filterOptions.customers.filter(Boolean);
+		return filterOptions.customers.filter(customer =>
+			customer && customer.toLowerCase().includes(customerSearchTerm.toLowerCase())
+		);
+	});
+	
+	// Current filtered customers list
+	const currentFilteredCustomers = $derived(filteredCustomers());
+	
+	// Derived state for filtered and sorted orders
+	const filteredAndSortedOrders = $derived(() => {
+		return orders;
+	});
 	
 	function showToastNotification(message: string, type: 'success' | 'error' = 'success') {
 		toastMessage = message;
@@ -44,6 +66,61 @@
 			showToast = false;
 		}, 3000);
 	}
+	
+	// Customer combobox functions
+	function selectCustomer(customer: string) {
+		customerFilter = customer;
+		customerSearchTerm = customer;
+		customerComboboxOpen = false;
+		applyFilters();
+	}
+	
+	function clearCustomerSearch() {
+		customerFilter = '';
+		customerSearchTerm = '';
+		customerComboboxOpen = false;
+		applyFilters();
+	}
+	
+	function handleCustomerInputFocus() {
+		customerComboboxOpen = true;
+	}
+	
+	function handleCustomerInputBlur() {
+		// Delay hiding to allow clicking on dropdown items
+		setTimeout(() => {
+			customerComboboxOpen = false;
+		}, 150);
+	}
+	
+	function handleCustomerInputKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			customerComboboxOpen = false;
+			customerInputRef?.blur();
+		} else if (event.key === 'ArrowDown') {
+			event.preventDefault();
+			// Focus first option in dropdown
+			const firstOption = customerComboboxRef?.querySelector('[role="option"]') as HTMLElement;
+			firstOption?.focus();
+		}
+	}
+	
+	function handleCustomerOptionKeydown(event: KeyboardEvent, customer: string) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			selectCustomer(customer);
+		} else if (event.key === 'Escape') {
+			customerComboboxOpen = false;
+			customerInputRef?.focus();
+		}
+	}
+	
+	// Initialize customer search input from filter
+	$effect(() => {
+		if (!customerComboboxOpen) {
+			customerSearchTerm = customerFilter || '';
+		}
+	});
 
 	function formatDate(date: Date | string) {
 		return new Date(date).toLocaleDateString('en-US', {
@@ -93,6 +170,7 @@
 	function clearFilters() {
 		statusFilter = 'all';
 		customerFilter = '';
+		customerSearchTerm = '';
 		itemFilter = '';
 		startDate = '';
 		endDate = '';
@@ -269,19 +347,72 @@
 		{#if showFilters}
 			<div class="mt-4 grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-2 lg:grid-cols-4">
 				<!-- Customer Filter -->
-				<div>
+				<div class="relative">
 					<label for="customer-filter" class="mb-1 block text-sm font-medium text-gray-700">Customer</label>
-					<select
-						id="customer-filter"
-						bind:value={customerFilter}
-						onchange={applyFilters}
-						class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-					>
-						<option value="">All customers</option>
-						{#each filterOptions?.customers ?? [] as customer}
-							<option value={customer}>{customer}</option>
-						{/each}
-					</select>
+					<div class="relative" bind:this={customerComboboxRef}>
+						<input
+							id="customer-filter"
+							bind:this={customerInputRef}
+							bind:value={customerSearchTerm}
+							onfocus={handleCustomerInputFocus}
+							onblur={handleCustomerInputBlur}
+							onkeydown={handleCustomerInputKeydown}
+							oninput={() => {
+								customerComboboxOpen = true;
+							}}
+							placeholder="Search customers..."
+							role="combobox"
+							aria-expanded={customerComboboxOpen}
+							aria-haspopup="listbox"
+							aria-controls="customer-listbox"
+							aria-label="Search and select customer"
+							class="w-full rounded border border-gray-300 px-3 py-2 pr-8 text-sm focus:border-blue-500 focus:outline-none"
+						/>
+						<div class="absolute inset-y-0 right-0 flex items-center pr-2">
+							{#if customerSearchTerm || customerFilter}
+								<button
+									onclick={clearCustomerSearch}
+									class="text-gray-400 hover:text-gray-600"
+									aria-label="Clear customer search"
+									type="button"
+								>
+									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+									</svg>
+								</button>
+							{:else}
+								<svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+								</svg>
+							{/if}
+						</div>
+						
+						{#if customerComboboxOpen && currentFilteredCustomers.length > 0}
+							<div 
+								id="customer-listbox"
+								class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+								role="listbox"
+								aria-label="Customer options"
+							>
+								{#each currentFilteredCustomers as customer (customer)}
+									{#if customer}
+										<button
+											onclick={() => selectCustomer(customer)}
+											onkeydown={(e) => handleCustomerOptionKeydown(e, customer)}
+											type="button"
+											role="option"
+											aria-selected={customerFilter === customer}
+											tabindex="0"
+											class="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none
+												{customerFilter === customer ? 'bg-blue-50 text-blue-700' : 'text-gray-900'}"
+										>
+											{customer}
+										</button>
+									{/if}
+								{/each}
+							</div>
+						{/if}
+					</div>
 				</div>
 
 				<!-- Item Filter -->

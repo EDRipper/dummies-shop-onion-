@@ -12,6 +12,9 @@
 		You have {user.tokens == 0 ? 'no' : user.tokens}
 		{user.tokens === 1 ? 'token' : 'tokens'}.
 	</p>
-	<h2>Shop closed temporarily.</h2>
-	<p>We have to fix some issues. We'll let everyone know when we reopen!</p>
+	<ul class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+		{#each items as item}
+			<ItemCard {item} userTokens={user.tokens} />
+		{/each}
+	</ul>
 </div>

@@ -45,6 +45,7 @@ export const payouts = pgTable('payouts', {
 	userId: text()
 		.notNull()
 		.references(() => rawUsers.slackId),
+	memo: text(),
 	createdAt: timestamp().notNull().defaultNow()
 });
 
@@ -57,11 +58,11 @@ export const usersWithTokens = pgView('users_with_tokens').as((qb) => {
 			tokens: sql<number>`
 			GREATEST(
 				COALESCE(
-					(SELECT SUM(tokens) FROM payouts WHERE "userId" = "user"."slackId"), 
+					(SELECT SUM(tokens) FROM payouts WHERE "userId" = "user"."slackId"),
 					0
-				) - 
+				) -
 				COALESCE(
-					(SELECT SUM("priceAtOrder") FROM shop_orders WHERE "userId" = "user"."slackId" AND status IN ('pending', 'fulfilled')), 
+					(SELECT SUM("priceAtOrder") FROM shop_orders WHERE "userId" = "user"."slackId" AND status IN ('pending', 'fulfilled')),
 					0
 				),
 				0

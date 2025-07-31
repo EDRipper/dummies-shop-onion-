@@ -3,8 +3,9 @@ const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
 const AIRTABLE_BASE_ID = 'app1sLnxuQNDBZNju';
 const AIRTABLE_TABLE_NAME = 'tblsbrzyPghuKgMyz';
 const HACKATIME_BASE_URL = 'https://hackatime.hackclub.com/api/v1/users';
-const START_DATE = '2025-06-24';
-const END_DATE = '2025-07-16T23:59:59Z';
+const HC_AI_URL = 'https://ai.hackclub.com/chat/completions';
+const START_DATE = '2025-6-24';
+const END_DATE = '2025-7-17T23:59Z';
 const MAX_TOKENS = 10;
 
 import { db } from '../src/lib/server/db';
@@ -41,6 +42,13 @@ interface UserBalance {
 	oldTokens: number;
 	newTokens: number;
 	spent: number;
+}
+
+interface UserPlatformData {
+	slackId: string;
+	email: string;
+	allRecords: AirtableRecord[];
+	platforms: string[];
 }
 
 async function fetchAirtableRecords(): Promise<AirtableRecord[]> {
@@ -96,6 +104,89 @@ function parseProjectNames(projectNamesString: string): string[] {
 		.split(/,\s*/)
 		.map((name) => name.trim())
 		.filter((name) => name.length > 0);
+}
+
+async function detectChatPlatforms(userRecords: AirtableRecord[]): Promise<string[]> {
+	if (userRecords.length === 0) return [];
+
+	// Combine Description and Playable URL fields from user's records
+	const allText = userRecords
+		.map((record) => {
+			const fields = record.fields;
+			// Only get Description and Playable URL fields
+			const relevantFields: string[] = [];
+
+			if (fields['Description'] && typeof fields['Description'] === 'string') {
+				relevantFields.push(`Description: ${fields['Description']}`);
+			}
+
+			if (fields['Playable URL'] && typeof fields['Playable URL'] === 'string') {
+				relevantFields.push(`Playable URL: ${fields['Playable URL']}`);
+			}
+
+			return relevantFields.join('\n');
+		})
+		.filter(text => text.length > 0) // Only include records with relevant fields
+		.join('\n\n');
+
+	const systemPrompt = `You are an expert at analyzing text to identify chat platforms mentioned.
+
+Your task is to identify ALL chat platforms mentioned across the provided text. Chat platforms include applications like Slack, Discord, Zulip, Microsoft Teams, Telegram, WhatsApp, IRC, Matrix, Mattermost, etc.
+
+IMPORTANT RULES:
+1. ONLY return chat/messaging platforms, not other types of platforms
+2. Return the results as a JSON array of strings
+3. Use standard platform names (e.g., "Slack", "Discord", "Zulip")
+4. If no chat platforms are found, return an empty array []
+5. Do not include any explanation or thinking process in your response
+
+Examples:
+- If text mentions "slack channels" and "discord server" → ["Slack", "Discord"]
+- If text mentions "github repository" and "zoom meeting" → []
+- If text mentions "Teams chat" and "telegram group" → ["Microsoft Teams", "Telegram"]
+
+Analyze the following text and return ONLY the JSON array:`;
+
+	try {
+		const response = await fetch(HC_AI_URL, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				messages: [
+					{ role: 'system', content: systemPrompt },
+					{ role: 'user', content: allText }
+				]
+			})
+		});
+
+		if (!response.ok) {
+			console.error(`HC AI request failed: ${response.status}`);
+			return [];
+		}
+
+		const data = await response.json();
+		const content = data.choices?.[0]?.message?.content || '';
+
+		// Remove <think> tags if present
+		const cleanContent = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+		// Try to parse as JSON
+		try {
+			const platforms = JSON.parse(cleanContent);
+			if (Array.isArray(platforms)) {
+				return platforms.filter((p) => typeof p === 'string');
+			}
+		} catch (parseError) {
+			console.error('Failed to parse HC AI response as JSON:', cleanContent);
+		}
+
+		return [];
+	} catch (error) {
+		console.error('Error calling HC AI:', error);
+		return [];
+	}
 }
 
 function calculateHoursFromProjects(
@@ -164,9 +255,9 @@ async function getCurrentBalances(userIds: string[]): Promise<Map<string, UserBa
 			totalPayouts: sql<number>`COALESCE(SUM(${payouts.tokens}), 0)`,
 			totalSpent: sql<number>`
         COALESCE(
-          (SELECT SUM("priceAtOrder") 
-           FROM ${shopOrders} 
-           WHERE "userId" = ${rawUsers.slackId} 
+          (SELECT SUM("priceAtOrder")
+           FROM ${shopOrders}
+           WHERE "userId" = ${rawUsers.slackId}
            AND status IN ('pending', 'fulfilled')
           ), 0
         )
@@ -207,6 +298,9 @@ async function processConvergeSubmissions() {
 	// Map to track emails for logging purposes
 	const slackIdToEmail = new Map<string, string>();
 
+	// Map to collect all records per user for platform analysis
+	const userRecordsMap = new Map<string, AirtableRecord[]>();
+
 	// Collect all unique Slack IDs
 	const allSlackIds = new Set<string>();
 
@@ -227,6 +321,12 @@ async function processConvergeSubmissions() {
 		if (email) {
 			slackIdToEmail.set(slackId, email);
 		}
+
+		// Collect all records for this user
+		if (!userRecordsMap.has(slackId)) {
+			userRecordsMap.set(slackId, []);
+		}
+		userRecordsMap.get(slackId)!.push(record);
 
 		console.log(`Processing Slack ID: ${slackId} (${email || 'no email'})`);
 		console.log(`  Target projects: ${projectNamesString}`);
@@ -252,6 +352,23 @@ async function processConvergeSubmissions() {
 		userHoursBySlackId.set(slackId, currentHours + hours);
 	}
 
+	// Analyze platforms for each user
+	console.log('\nAnalyzing chat platforms for platform bonuses...');
+	const userPlatformData = new Map<string, UserPlatformData>();
+
+	for (const [slackId, userRecords] of userRecordsMap) {
+		console.log(`Detecting platforms for ${slackId}...`);
+		const platforms = await detectChatPlatforms(userRecords);
+		console.log(`  Found platforms: ${platforms.length > 0 ? platforms.join(', ') : 'none'}`);
+
+		userPlatformData.set(slackId, {
+			slackId,
+			email: slackIdToEmail.get(slackId) || 'N/A',
+			allRecords: userRecords,
+			platforms
+		});
+	}
+
 	// Get current balances before clearing
 	const currentBalances = await getCurrentBalances(Array.from(allSlackIds));
 
@@ -265,8 +382,8 @@ async function processConvergeSubmissions() {
 	console.log(`\nCleared ${clearedCount} old payouts\n`);
 
 	// Process each user and create new payouts
-	const results: Array<{ slackId: string; email: string; tokens: number }> = [];
-	const payoutRecords: Array<{ tokens: number; userId: string }> = [];
+	const results: Array<{ slackId: string; email: string; tokens: number; platforms?: string[] }> = [];
+	const payoutRecords: Array<{ tokens: number; userId: string; memo: string }> = [];
 	const warnings: Array<{
 		slackId: string;
 		email: string;
@@ -275,6 +392,7 @@ async function processConvergeSubmissions() {
 		difference: number;
 	}> = [];
 
+	// Create main payouts for hours worked
 	for (const [slackId, totalHours] of userHoursBySlackId) {
 		const totalSeconds = totalHours * 3600;
 		const tokens = convertSecondsToTokens(totalSeconds);
@@ -294,22 +412,94 @@ async function processConvergeSubmissions() {
 			balance.newTokens = tokens;
 			currentBalances.set(slackId, balance);
 
-			// Create payout record
+			// Create payout record with memo
 			const payoutData = {
 				tokens,
-				userId: slackId
+				userId: slackId,
+				memo: `Converge payout: ${totalHours.toFixed(2)} hours worked (${START_DATE} to ${END_DATE.split('T')[0]})`
 			};
 
 			payoutRecords.push(payoutData);
 
 			const email = slackIdToEmail.get(slackId) || 'N/A';
+			const platformData = userPlatformData.get(slackId);
+
 			results.push({
 				slackId,
 				email,
-				tokens
+				tokens,
+				platforms: platformData?.platforms || []
 			});
 
 			console.log(`${slackId} (${email}): ${totalHours.toFixed(2)} hours → ${tokens} tokens`);
+		}
+	}
+
+	// Create platform bonus payouts
+	console.log('\nProcessing platform bonuses...');
+	let platformBonusCount = 0;
+
+	for (const [slackId, platformData] of userPlatformData) {
+		const { platforms, email } = platformData;
+
+		if (platforms.length >= 2) {
+			// Ensure user exists in database
+			await ensureUserExists(slackId);
+
+			// Calculate potential bonus tokens (1 per platform if 2+)
+			const potentialBonusTokens = platforms.length;
+
+			// Get current tokens from hours worked
+			const currentBalance = currentBalances.get(slackId) || {
+				slackId,
+				email,
+				oldTokens: 0,
+				newTokens: 0,
+				spent: 0
+			};
+
+			// Calculate actual bonus tokens respecting MAX_TOKENS cap
+			const currentTokens = currentBalance.newTokens;
+			const maxBonusAllowed = Math.max(0, MAX_TOKENS - currentTokens);
+			const actualBonusTokens = Math.min(potentialBonusTokens, maxBonusAllowed);
+
+			if (actualBonusTokens > 0) {
+				// Update balance tracking
+				currentBalance.newTokens += actualBonusTokens;
+				currentBalances.set(slackId, currentBalance);
+
+				// Create platform bonus payout
+				const platformPayoutData = {
+					tokens: actualBonusTokens,
+					userId: slackId,
+					memo: `Platform bonus: Used ${platforms.length} chat platforms (${platforms.join(', ')}) - capped at ${MAX_TOKENS} total tokens`
+				};
+
+				payoutRecords.push(platformPayoutData);
+				platformBonusCount++;
+
+				// Update results to include bonus tokens
+				const resultIndex = results.findIndex(r => r.slackId === slackId);
+				if (resultIndex >= 0) {
+					results[resultIndex].tokens += actualBonusTokens;
+				} else {
+					// User didn't have hours but has platform bonus
+					results.push({
+						slackId,
+						email,
+						tokens: actualBonusTokens,
+						platforms
+					});
+				}
+
+				if (actualBonusTokens < potentialBonusTokens) {
+					console.log(`${slackId} (${email}): +${actualBonusTokens} platform bonus tokens for ${platforms.join(', ')} (capped from ${potentialBonusTokens} due to ${MAX_TOKENS} token limit)`);
+				} else {
+					console.log(`${slackId} (${email}): +${actualBonusTokens} platform bonus tokens for ${platforms.join(', ')}`);
+				}
+			} else {
+				console.log(`${slackId} (${email}): No platform bonus - already at ${MAX_TOKENS} token cap with ${platforms.join(', ')}`);
+			}
 		}
 	}
 
@@ -342,13 +532,13 @@ async function processConvergeSubmissions() {
 		console.log(`Successfully inserted ${payoutRecords.length} payouts`);
 	}
 
-	return { results, warnings };
+	return { results, warnings, platformBonusCount };
 }
 
 // Main execution
 async function main() {
 	try {
-		const { results, warnings } = await processConvergeSubmissions();
+		const { results, warnings, platformBonusCount } = await processConvergeSubmissions();
 
 		console.log('\n=== FINAL RESULTS (JSON) ===');
 		console.log(JSON.stringify(results, null, 2));
@@ -356,6 +546,16 @@ async function main() {
 		console.log('\n=== SUMMARY ===');
 		console.log(`Total users: ${results.length}`);
 		console.log(`Total tokens distributed: ${results.reduce((sum, r) => sum + r.tokens, 0)}`);
+		console.log(`Users with platform bonuses: ${platformBonusCount}`);
+
+		// Show platform breakdown
+		const platformUsers = results.filter(r => r.platforms && r.platforms.length >= 2);
+		if (platformUsers.length > 0) {
+			console.log('\n=== PLATFORM BONUSES ===');
+			for (const user of platformUsers) {
+				console.log(`${user.slackId} (${user.email}): ${user.platforms!.join(', ')}`);
+			}
+		}
 
 		if (warnings.length > 0) {
 			console.log('\n=== ⚠️  BALANCE REDUCTION WARNINGS ⚠️  ===');

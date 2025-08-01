@@ -84,7 +84,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 					dataVariables: {
 						itemName: shopItem.name,
 						orderId: updatedOrder[0].id.slice(0, 8),
-						memo: memo || '',
+						memo: memo || 'Unknown reason.',
 					}
 				})
 			})

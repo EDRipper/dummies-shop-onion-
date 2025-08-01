@@ -73,11 +73,6 @@
 							>
 								Date
 							</th>
-							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>
-								Notes
-							</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-gray-200 bg-white">
@@ -117,18 +112,16 @@
 								<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
 									{formatDate(order.createdAt)}
 								</td>
-								<td class="px-6 py-4 text-sm text-gray-500">
-									{#if order.memo}
-										<div class="max-w-xs">
-											<div class="text-xs text-gray-600 italic" title={order.memo}>
-												{order.memo}
-											</div>
-										</div>
-									{:else}
-										<span class="text-xs text-gray-400">—</span>
-									{/if}
-								</td>
 							</tr>
+							{#if order.memo}
+								<tr class="hover:bg-gray-50">
+									<td colspan="5" class="px-6 py-2 bg-gray-50">
+										<div class="text-sm text-gray-600 italic">
+											<span class="font-medium text-gray-700">Note:</span> {order.memo}
+										</div>
+									</td>
+								</tr>
+							{/if}
 						{/each}
 					</tbody>
 				</table>

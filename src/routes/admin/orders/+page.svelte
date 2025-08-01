@@ -674,17 +674,19 @@
 											</button>
 										</div>
 									{:else}
-										<div class="flex flex-col">
-											<span class="text-xs text-gray-400">No actions</span>
-											{#if order.memo}
-												<div class="mt-1 text-xs text-gray-600 italic max-w-32 truncate" title={order.memo}>
-													{order.memo}
-												</div>
-											{/if}
-										</div>
+										<span class="text-xs text-gray-400">No actions</span>
 									{/if}
 								</td>
 							</tr>
+							{#if order.memo}
+								<tr class="hover:bg-gray-50">
+									<td colspan="7" class="px-6 py-2 bg-gray-50">
+										<div class="text-sm text-gray-600 italic">
+											<span class="font-medium text-gray-700">Note:</span> {order.memo}
+										</div>
+									</td>
+								</tr>
+							{/if}
 						{/each}
 					</tbody>
 				</table>

@@ -31,6 +31,7 @@ export const shopOrders = pgTable('shop_orders', {
 	status: varchar({ enum: ['pending', 'fulfilled', 'rejected'] })
 		.default('pending')
 		.notNull(),
+	memo: text(),
 	createdAt: timestamp().notNull().defaultNow(),
 	userId: text()
 		.notNull()

@@ -9,6 +9,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			id: shopOrders.id,
 			status: shopOrders.status,
 			priceAtOrder: shopOrders.priceAtOrder,
+			memo: shopOrders.memo,
 			createdAt: shopOrders.createdAt,
 			itemName: shopItems.name,
 			itemImageUrl: shopItems.imageUrl,

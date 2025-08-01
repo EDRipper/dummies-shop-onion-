@@ -6,7 +6,7 @@
 	import { invalidateAll } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
-	
+
 	// Extract properties safely
 	let orders = $state(data.orders);
 	const filters = data.filters ?? {};
@@ -25,21 +25,27 @@
 
 	// Show/hide filters
 	let showFilters = $state(false);
-	
+
 	// Customer combobox state
 	let customerComboboxOpen = $state(false);
 	let customerSearchTerm = $state('');
 	let customerComboboxRef = $state<HTMLDivElement>();
 	let customerInputRef = $state<HTMLInputElement>();
-	
+
 	// Loading state for order updates
 	let updatingOrders = $state(new Set<string>());
-	
+
 	// Toast notification state
 	let toastMessage = $state('');
 	let toastType = $state<'success' | 'error'>('success');
 	let showToast = $state(false);
-	
+
+	// Modal state for memos
+	let showMemoModal = $state(false);
+	let memoText = $state('');
+	let memoOrderId = $state('');
+	let memoStatus = $state<'fulfilled' | 'rejected'>('fulfilled');
+
 	// Filter customers based on search term
 	const filteredCustomers = $derived(() => {
 		if (!customerSearchTerm) return filterOptions.customers.filter(Boolean);
@@ -47,26 +53,46 @@
 			customer && customer.toLowerCase().includes(customerSearchTerm.toLowerCase())
 		);
 	});
-	
+
 	// Current filtered customers list
 	const currentFilteredCustomers = $derived(filteredCustomers());
-	
+
 	// Derived state for filtered and sorted orders
 	const filteredAndSortedOrders = $derived(() => {
 		return orders;
 	});
-	
+
 	function showToastNotification(message: string, type: 'success' | 'error' = 'success') {
 		toastMessage = message;
 		toastType = type;
 		showToast = true;
-		
+
 		// Auto hide after 3 seconds
 		setTimeout(() => {
 			showToast = false;
 		}, 3000);
 	}
-	
+
+	// Modal functions
+	function openMemoModal(orderId: string, status: 'fulfilled' | 'rejected') {
+		memoOrderId = orderId;
+		memoStatus = status;
+		memoText = '';
+		showMemoModal = true;
+	}
+
+	function closeMemoModal() {
+		showMemoModal = false;
+		memoText = '';
+		memoOrderId = '';
+	}
+
+	function handleMemoKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			closeMemoModal();
+		}
+	}
+
 	// Customer combobox functions
 	function selectCustomer(customer: string) {
 		customerFilter = customer;
@@ -74,25 +100,25 @@
 		customerComboboxOpen = false;
 		applyFilters();
 	}
-	
+
 	function clearCustomerSearch() {
 		customerFilter = '';
 		customerSearchTerm = '';
 		customerComboboxOpen = false;
 		applyFilters();
 	}
-	
+
 	function handleCustomerInputFocus() {
 		customerComboboxOpen = true;
 	}
-	
+
 	function handleCustomerInputBlur() {
 		// Delay hiding to allow clicking on dropdown items
 		setTimeout(() => {
 			customerComboboxOpen = false;
 		}, 150);
 	}
-	
+
 	function handleCustomerInputKeydown(event: KeyboardEvent) {
 		if (event.key === 'Escape') {
 			customerComboboxOpen = false;
@@ -104,7 +130,7 @@
 			firstOption?.focus();
 		}
 	}
-	
+
 	function handleCustomerOptionKeydown(event: KeyboardEvent, customer: string) {
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
@@ -114,7 +140,7 @@
 			customerInputRef?.focus();
 		}
 	}
-	
+
 	// Initialize customer search input from filter
 	$effect(() => {
 		if (!customerComboboxOpen) {
@@ -151,9 +177,9 @@
 
 	function applyFilters() {
 		if (!browser) return;
-		
+
 		const params = new URLSearchParams();
-		
+
 		if (statusFilter !== 'all') params.set('status', statusFilter);
 		if (customerFilter) params.set('customer', customerFilter);
 		if (itemFilter) params.set('item', itemFilter);
@@ -196,24 +222,24 @@
 		return sortOrder === 'desc' ? '↓' : '↑';
 	}
 
-	async function updateOrderStatus(orderId: string, newStatus: string) {
+	async function updateOrderStatus(orderId: string, newStatus: string, memo?: string) {
 		// Add to updating set
 		updatingOrders.add(orderId);
-		
+
 		try {
 			const response = await fetch('/api/admin/orders', {
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ orderId, status: newStatus })
+				body: JSON.stringify({ orderId, status: newStatus, memo })
 			});
 
 			if (response.ok) {
 				// Update the local state instead of refreshing the page
 				const orderIndex = orders.findIndex(order => order.id === orderId);
 				if (orderIndex !== -1) {
-					orders[orderIndex] = { ...orders[orderIndex], status: newStatus as any };
+					orders[orderIndex] = { ...orders[orderIndex], status: newStatus as any, memo };
 					showToastNotification(`Order #${orderId.slice(-8)} has been ${newStatus}`, 'success');
 				}
 			} else {
@@ -227,6 +253,16 @@
 		}
 	}
 
+	async function submitMemo() {
+		if (!memoText.trim()) {
+			showToastNotification('Please enter a memo', 'error');
+			return;
+		}
+
+		await updateOrderStatus(memoOrderId, memoStatus, memoText.trim());
+		closeMemoModal();
+	}
+
 	// Get current active filters count for badge using $derived
 	const activeFiltersCount = $derived([
 		statusFilter !== 'all' ? 1 : 0,
@@ -237,7 +273,7 @@
 		minPrice ? 1 : 0,
 		maxPrice ? 1 : 0
 	].reduce((a, b) => a + b, 0));
-	
+
 	// Update local orders when data changes (due to filtering)
 	$effect(() => {
 		orders = data.orders;
@@ -249,7 +285,7 @@
 		<div>
 			<h1 class="text-3xl font-bold">Order Management</h1>
 			<p class="mt-1 text-gray-600">
-				View and manage all customer orders 
+				View and manage all customer orders
 				{#if orders.length > 0}
 					({orders.length} {orders.length === 1 ? 'order' : 'orders'})
 				{/if}
@@ -386,9 +422,9 @@
 								</svg>
 							{/if}
 						</div>
-						
+
 						{#if customerComboboxOpen && currentFilteredCustomers.length > 0}
-							<div 
+							<div
 								id="customer-listbox"
 								class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
 								role="listbox"
@@ -493,8 +529,8 @@
 					{activeFiltersCount > 0 ? 'No orders match your filters' : 'No orders yet'}
 				</h3>
 				<p class="text-gray-500">
-					{activeFiltersCount > 0 
-						? 'Try adjusting your filters to see more results.' 
+					{activeFiltersCount > 0
+						? 'Try adjusting your filters to see more results.'
 						: 'Orders will appear here once customers start purchasing items.'}
 				</p>
 				{#if activeFiltersCount > 0}
@@ -514,7 +550,7 @@
 							<th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
 								Order
 							</th>
-							<th 
+							<th
 								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
 								onclick={() => toggleSort('customer')}
 							>
@@ -523,7 +559,7 @@
 									<span class="text-gray-400">{getSortIcon('customer')}</span>
 								</div>
 							</th>
-							<th 
+							<th
 								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
 								onclick={() => toggleSort('item')}
 							>
@@ -532,7 +568,7 @@
 									<span class="text-gray-400">{getSortIcon('item')}</span>
 								</div>
 							</th>
-							<th 
+							<th
 								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
 								onclick={() => toggleSort('price')}
 							>
@@ -541,7 +577,7 @@
 									<span class="text-gray-400">{getSortIcon('price')}</span>
 								</div>
 							</th>
-							<th 
+							<th
 								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
 								onclick={() => toggleSort('status')}
 							>
@@ -550,7 +586,7 @@
 									<span class="text-gray-400">{getSortIcon('status')}</span>
 								</div>
 							</th>
-							<th 
+							<th
 								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
 								onclick={() => toggleSort('createdAt')}
 							>
@@ -617,7 +653,7 @@
 									{#if order.status === 'pending'}
 										<div class="flex space-x-2">
 											<button
-												onclick={() => updateOrderStatus(order.id, 'fulfilled')}
+												onclick={() => openMemoModal(order.id, 'fulfilled')}
 												disabled={updatingOrders.has(order.id)}
 												class="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
 											>
@@ -627,7 +663,7 @@
 												Fulfill
 											</button>
 											<button
-												onclick={() => updateOrderStatus(order.id, 'rejected')}
+												onclick={() => openMemoModal(order.id, 'rejected')}
 												disabled={updatingOrders.has(order.id)}
 												class="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
 											>
@@ -638,7 +674,14 @@
 											</button>
 										</div>
 									{:else}
-										<span class="text-xs text-gray-400">No actions</span>
+										<div class="flex flex-col">
+											<span class="text-xs text-gray-400">No actions</span>
+											{#if order.memo}
+												<div class="mt-1 text-xs text-gray-600 italic max-w-32 truncate" title={order.memo}>
+													{order.memo}
+												</div>
+											{/if}
+										</div>
 									{/if}
 								</td>
 							</tr>
@@ -700,6 +743,65 @@
 		</div>
 	</div>
 </div>
+
+<!-- Memo Modal -->
+{#if showMemoModal}
+	<div class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="memo-modal-title">
+		<div class="flex min-h-screen items-center justify-center p-4">
+			<!-- Backdrop -->
+			<div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick={closeMemoModal}></div>
+
+			<!-- Modal -->
+			<div class="relative w-full max-w-md transform overflow-hidden rounded-lg bg-white px-6 py-6 shadow-xl transition-all">
+				<div class="mb-4">
+					<h3 id="memo-modal-title" class="text-lg font-medium text-gray-900">
+						{memoStatus === 'fulfilled' ? 'Fulfill Order' : 'Reject Order'}
+					</h3>
+					<p class="mt-1 text-sm text-gray-500">
+						Add a note that will be visible to the customer regarding this order.
+					</p>
+				</div>
+
+				<div class="mb-4">
+					<label for="memo-input" class="block text-sm font-medium text-gray-700 mb-2">
+						Memo
+					</label>
+					<textarea
+						id="memo-input"
+						bind:value={memoText}
+						onkeydown={handleMemoKeydown}
+						placeholder="Enter a note about this order decision..."
+						rows="4"
+						class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+						autofocus
+					></textarea>
+				</div>
+
+				<div class="flex justify-end space-x-3">
+					<button
+						onclick={closeMemoModal}
+						class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+					>
+						Cancel
+					</button>
+					<button
+						onclick={submitMemo}
+						disabled={!memoText.trim() || updatingOrders.has(memoOrderId)}
+						class="rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed
+							{memoStatus === 'fulfilled'
+								? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+								: 'bg-red-600 hover:bg-red-700 focus:ring-red-500'}"
+					>
+						{#if updatingOrders.has(memoOrderId)}
+							<span class="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></span>
+						{/if}
+						{memoStatus === 'fulfilled' ? 'Fulfill Order' : 'Reject Order'}
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <!-- Toast Notification -->
 {#if showToast}

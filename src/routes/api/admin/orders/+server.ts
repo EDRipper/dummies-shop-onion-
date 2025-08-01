@@ -40,7 +40,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 			return json({ error: 'Access denied' }, { status: 403 });
 		}
 
-		const { orderId, status } = await request.json();
+		const { orderId, status, memo } = await request.json();
 
 		if (!orderId || !status) {
 			return json({ error: 'Order ID and status are required' }, { status: 400 });
@@ -52,9 +52,14 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 		}
 
 		// Update the order
+		const updateData: { status: string; memo?: string } = { status };
+		if (memo !== undefined) {
+			updateData.memo = memo;
+		}
+
 		const updatedOrder = await db
 			.update(shopOrders)
-			.set({ status })
+			.set(updateData)
 			.where(eq(shopOrders.id, orderId))
 			.returning();
 
@@ -79,6 +84,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 					dataVariables: {
 						itemName: shopItem.name,
 						orderId: updatedOrder[0].id.slice(0, 8),
+						memo: memo || '',
 					}
 				})
 			})

@@ -16,6 +16,7 @@ export const shopItems = pgTable('shop_items', {
 	description: text().notNull(),
 	imageUrl: text().notNull(),
 	price: integer().notNull(),
+	usd_cost: integer(),
 	type: varchar({ enum: ['hcb', 'third_party'] }),
 	hcbMids: text().array()
 });

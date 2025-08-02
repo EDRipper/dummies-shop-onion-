@@ -36,6 +36,13 @@
       "when": 1754011941708,
       "tag": "0004_parched_mentallo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1754141202192,
+      "tag": "0005_mature_warhawk",
+      "breakpoints": true
     }
   ]
 }

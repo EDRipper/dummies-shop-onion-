@@ -34,6 +34,9 @@ interface HackatimeResponse {
 		projects?: HackatimeProject[];
 		[key: string]: any;
 	};
+	trust_factor: {
+		trust_level: "red" | "yellow" | "blue";
+	};
 }
 
 interface UserBalance {
@@ -282,9 +285,17 @@ async function getCurrentBalances(userIds: string[]): Promise<Map<string, UserBa
 }
 
 async function clearOldPayouts(): Promise<number> {
-	console.log('Clearing old payouts...');
-	const result = await db.delete(payouts).returning();
-	return result.length;
+    console.log('Clearing old payouts (excluding Thunder and MANUAL payouts)...');
+    const result = await db
+        .delete(payouts)
+        .where(
+            and(
+                sql`${payouts.memo} NOT ILIKE '%Thunder%'`,
+                sql`${payouts.memo} NOT ILIKE '%MANUAL%'`
+            )
+        )
+        .returning();
+    return result.length;
 }
 
 async function processConvergeSubmissions() {
@@ -341,6 +352,13 @@ async function processConvergeSubmissions() {
 		if (!hackatimeData) {
 			console.log('  Failed to fetch Hackatime data, skipping...\n');
 			continue;
+		}
+		const trustLevel = hackatimeData.trust_factor?.trust_level;
+		if (trustLevel === 'red') {
+			console.log(`  Trust level is red, skipping ${slackId}\n`);
+			continue;
+		} else if (trustLevel === 'yellow') {
+			console.log(`  Trust level is yellow, processing ${slackId} with caution\n`);
 		}
 
 		const totalSeconds = calculateHoursFromProjects(hackatimeData, targetProjects);

@@ -89,7 +89,10 @@ export async function GET({ url, cookies }) {
 			}
 		});
 
-	cookies.set('session', await symmetric.encrypt(slackId, SESSIONS_SECRET), { path: '/' });
+	cookies.set('session', await symmetric.encrypt(slackId, SESSIONS_SECRET), {
+		path: '/',
+		maxAge: 60 * 60 * 24 * 90 // 90 days in seconds
+	});
 
 	throw redirect(301, '/');
 }

@@ -13,6 +13,7 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check .",
 		"money": "bun run scripts/who-got-money.ts",
+		"budget": "bun run scripts/payment-calculator.ts",
 		"db:push": "drizzle-kit push",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",

@@ -312,6 +312,9 @@ async function processConvergeSubmissions() {
 	// Map to collect all records per user for platform analysis
 	const userRecordsMap = new Map<string, AirtableRecord[]>();
 
+	// Map to store trust levels to avoid refetching
+	const userTrustLevels = new Map<string, string>();
+
 	// Collect all unique Slack IDs
 	const allSlackIds = new Set<string>();
 
@@ -340,9 +343,9 @@ async function processConvergeSubmissions() {
 		userRecordsMap.get(slackId)!.push(record);
 
 		console.log(`Processing Slack ID: ${slackId} (${email || 'no email'})`);
-		console.log(`  Target projects: ${projectNamesString}`);
+		console.log(`  Target projects: ${projectNamesString || 'none'}`);
 
-		const targetProjects = parseProjectNames(projectNamesString);
+		const targetProjects = parseProjectNames(projectNamesString || '');
 		if (targetProjects.length === 0) {
 			console.log('  No target projects specified, skipping...\n');
 			continue;
@@ -353,7 +356,10 @@ async function processConvergeSubmissions() {
 			console.log('  Failed to fetch Hackatime data, skipping...\n');
 			continue;
 		}
+
 		const trustLevel = hackatimeData.trust_factor?.trust_level;
+		userTrustLevels.set(slackId, trustLevel || 'unknown');
+
 		if (trustLevel === 'red') {
 			console.log(`  Trust level is red, skipping ${slackId}\n`);
 			continue;
@@ -370,11 +376,18 @@ async function processConvergeSubmissions() {
 		userHoursBySlackId.set(slackId, currentHours + hours);
 	}
 
-	// Analyze platforms for each user
+	// Analyze platforms for users with good trust levels
 	console.log('\nAnalyzing chat platforms for platform bonuses...');
 	const userPlatformData = new Map<string, UserPlatformData>();
 
 	for (const [slackId, userRecords] of userRecordsMap) {
+		const trustLevel = userTrustLevels.get(slackId);
+
+		if (trustLevel === 'red') {
+			console.log(`Skipping platform analysis for ${slackId} - red trust level`);
+			continue;
+		}
+
 		console.log(`Detecting platforms for ${slackId}...`);
 		const platforms = await detectChatPlatforms(userRecords);
 		console.log(`  Found platforms: ${platforms.length > 0 ? platforms.join(', ') : 'none'}`);

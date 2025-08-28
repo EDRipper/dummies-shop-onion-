@@ -1,0 +1,1 @@
+ALTER TABLE "payouts" ALTER COLUMN "overridenHours" DROP NOT NULL;

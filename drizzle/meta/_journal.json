@@ -43,6 +43,27 @@
       "when": 1754141202192,
       "tag": "0005_mature_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1755658980356,
+      "tag": "0006_elite_ben_parker",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1755659161820,
+      "tag": "0007_blushing_wither",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1755659196731,
+      "tag": "0008_overjoyed_naoko",
+      "breakpoints": true
     }
   ]
 }

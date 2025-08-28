@@ -1,0 +1,1 @@
+ALTER TABLE "payouts" ADD COLUMN "submittedToUnified" boolean DEFAULT false NOT NULL;

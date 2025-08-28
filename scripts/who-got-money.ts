@@ -19,6 +19,8 @@ interface AirtableRecord {
 		Email?: string;
 		'Email Normalised'?: string;
 		'Hackatime Project Name'?: string;
+		'Optional - Override Hours Spent'?: number;
+		'Optional - Override Hours Spent Justification'?: string;
 		[key: string]: any;
 	};
 }
@@ -87,7 +89,11 @@ async function fetchHackatimeStats(slackId: string): Promise<HackatimeResponse |
 	const url = `${HACKATIME_BASE_URL}/${slackId}/stats?features=projects&start_date=${START_DATE}&end_date=${END_DATE}`;
 
 	try {
-		const response = await fetch(url);
+		const response = await fetch(url, {
+			headers: {
+				'Rack-Attack-Bypass': process.env.RACK_ATTACK_BYPASS || '',
+			}
+		});
 		if (!response.ok) {
 			console.error(`Failed to fetch Hackatime stats for ${slackId}: ${response.status}`);
 			return null;
@@ -306,6 +312,9 @@ async function processConvergeSubmissions() {
 	// Map to track hours by Slack ID (for deduplication)
 	const userHoursBySlackId = new Map<string, number>();
 
+	// Map to track base hackatime hours and override hours separately
+	const userBaseHoursMap = new Map<string, number>();
+
 	// Map to track emails for logging purposes
 	const slackIdToEmail = new Map<string, string>();
 
@@ -315,9 +324,14 @@ async function processConvergeSubmissions() {
 	// Map to store trust levels to avoid refetching
 	const userTrustLevels = new Map<string, string>();
 
-	// Collect all unique Slack IDs
+	// Collect all unique Slack IDs and organize data
 	const allSlackIds = new Set<string>();
+	const usersNeedingHackatime = new Set<string>();
+	const userTargetProjects = new Map<string, string[]>();
 
+	// First pass: organize all data and identify users needing Hackatime data
+	let missingSlackIdRecords = 0;
+	let recordsWithProjectNames = 0;
 	for (const record of records) {
 		const fields = record.fields;
 		const slackId = fields['Slack ID'];
@@ -326,6 +340,7 @@ async function processConvergeSubmissions() {
 
 		if (!slackId) {
 			console.log(`Skipping record ${record.id} - missing Slack ID`);
+			missingSlackIdRecords++;
 			continue;
 		}
 
@@ -342,22 +357,54 @@ async function processConvergeSubmissions() {
 		}
 		userRecordsMap.get(slackId)!.push(record);
 
-		console.log(`Processing Slack ID: ${slackId} (${email || 'no email'})`);
-		console.log(`  Target projects: ${projectNamesString || 'none'}`);
-
 		const targetProjects = parseProjectNames(projectNamesString || '');
-		if (targetProjects.length === 0) {
-			console.log('  No target projects specified, skipping...\n');
-			continue;
+		if (targetProjects.length > 0) {
+			recordsWithProjectNames++;
+			// Accumulate target projects for this user
+			const existingProjects = userTargetProjects.get(slackId) || [];
+			userTargetProjects.set(slackId, [...existingProjects, ...targetProjects]);
 		}
+	}
 
-		const hackatimeData = await fetchHackatimeStats(slackId);
-		if (!hackatimeData) {
+	// Diagnostic breakdown for clarity on Hackatime fetch count
+	const uniqueSlackIds = allSlackIds.size;
+	const usersWithProjectNames = new Set<string>(userTargetProjects.keys()).size;
+	const usersNeedingHackatimeCount = uniqueSlackIds; // Always fetch Hackatime for all users with Slack IDs
+	const usersWithoutProjectNames = Math.max(0, uniqueSlackIds - usersWithProjectNames);
+
+	console.log('Breakdown before Hackatime fetch:');
+	console.log(`- Unique Slack IDs (approved): ${uniqueSlackIds}`);
+	console.log(`- Records missing Slack ID (skipped): ${missingSlackIdRecords}`);
+	console.log(`- Users with Hackatime project names: ${usersWithProjectNames}`);
+	console.log(`- Users without project names: ${usersWithoutProjectNames}`);
+	console.log(`- => Users to fetch from Hackatime: ${usersNeedingHackatimeCount}\n`);
+
+	// Parallel fetch Hackatime data for all users who need it
+	const usersNeedingHackatimeArray = Array.from(allSlackIds);
+	console.log(`\nFetching Hackatime data for ${usersNeedingHackatimeArray.length} users in parallel...`);
+
+	const hackatimePromises = usersNeedingHackatimeArray.map(async (slackId) => {
+		const data = await fetchHackatimeStats(slackId);
+		return { slackId, data };
+	});
+
+	const hackatimeResults = await Promise.all(hackatimePromises);
+
+	// Process Hackatime results
+	console.log('\nProcessing Hackatime results...');
+	for (const { slackId, data } of hackatimeResults) {
+		const email = slackIdToEmail.get(slackId) || 'no email';
+		const targetProjects = userTargetProjects.get(slackId) || [];
+
+		console.log(`Processing Slack ID: ${slackId} (${email})`);
+		console.log(`  Target projects: ${targetProjects.join(', ')}`);
+
+		if (!data) {
 			console.log('  Failed to fetch Hackatime data, skipping...\n');
 			continue;
 		}
 
-		const trustLevel = hackatimeData.trust_factor?.trust_level;
+		const trustLevel = data.trust_factor?.trust_level;
 		userTrustLevels.set(slackId, trustLevel || 'unknown');
 
 		if (trustLevel === 'red') {
@@ -367,37 +414,46 @@ async function processConvergeSubmissions() {
 			console.log(`  Trust level is yellow, processing ${slackId} with caution\n`);
 		}
 
-		const totalSeconds = calculateHoursFromProjects(hackatimeData, targetProjects);
+		const totalSeconds = calculateHoursFromProjects(data, targetProjects);
 		const hours = totalSeconds / 3600;
 		console.log(`  Total: ${totalSeconds} seconds (${hours.toFixed(2)} hours)\n`);
+
+		// Track base hackatime hours separately
+		const currentBaseHours = userBaseHoursMap.get(slackId) || 0;
+		userBaseHoursMap.set(slackId, currentBaseHours + hours);
 
 		// Accumulate hours by Slack ID
 		const currentHours = userHoursBySlackId.get(slackId) || 0;
 		userHoursBySlackId.set(slackId, currentHours + hours);
 	}
 
-	// Analyze platforms for users with good trust levels
+	// Analyze platforms for users with good trust levels in parallel
 	console.log('\nAnalyzing chat platforms for platform bonuses...');
 	const userPlatformData = new Map<string, UserPlatformData>();
 
-	for (const [slackId, userRecords] of userRecordsMap) {
-		const trustLevel = userTrustLevels.get(slackId);
+	const platformAnalysisPromises = Array.from(userRecordsMap.entries())
+		.filter(([slackId]) => {
+			const trustLevel = userTrustLevels.get(slackId);
+			return trustLevel !== 'red';
+		})
+		.map(async ([slackId, userRecords]) => {
+			console.log(`Detecting platforms for ${slackId}...`);
+			const platforms = await detectChatPlatforms(userRecords);
+			console.log(`  Found platforms: ${platforms.length > 0 ? platforms.join(', ') : 'none'}`);
 
-		if (trustLevel === 'red') {
-			console.log(`Skipping platform analysis for ${slackId} - red trust level`);
-			continue;
-		}
-
-		console.log(`Detecting platforms for ${slackId}...`);
-		const platforms = await detectChatPlatforms(userRecords);
-		console.log(`  Found platforms: ${platforms.length > 0 ? platforms.join(', ') : 'none'}`);
-
-		userPlatformData.set(slackId, {
-			slackId,
-			email: slackIdToEmail.get(slackId) || 'N/A',
-			allRecords: userRecords,
-			platforms
+			return {
+				slackId,
+				email: slackIdToEmail.get(slackId) || 'N/A',
+				allRecords: userRecords,
+				platforms
+			};
 		});
+
+	const platformResults = await Promise.all(platformAnalysisPromises);
+
+	// Store platform results
+	for (const platformData of platformResults) {
+		userPlatformData.set(platformData.slackId, platformData);
 	}
 
 	// Get current balances before clearing
@@ -414,7 +470,14 @@ async function processConvergeSubmissions() {
 
 	// Process each user and create new payouts
 	const results: Array<{ slackId: string; email: string; tokens: number; platforms?: string[] }> = [];
-	const payoutRecords: Array<{ tokens: number; userId: string; memo: string }> = [];
+	const payoutRecords: Array<{
+		tokens: number;
+		userId: string;
+		memo: string;
+		submittedToUnified?: boolean;
+		baseHackatimeHours?: string;
+		overridenHours?: string;
+	}> = [];
 	const warnings: Array<{
 		slackId: string;
 		email: string;
@@ -423,15 +486,16 @@ async function processConvergeSubmissions() {
 		difference: number;
 	}> = [];
 
+	// Ensure all users exist in parallel
+	const userEnsurancePromises = Array.from(allSlackIds).map(slackId => ensureUserExists(slackId));
+	await Promise.all(userEnsurancePromises);
+
 	// Create main payouts for hours worked
 	for (const [slackId, totalHours] of userHoursBySlackId) {
 		const totalSeconds = totalHours * 3600;
 		const tokens = convertSecondsToTokens(totalSeconds);
 
 		if (tokens > 0) {
-			// Ensure user exists in database
-			await ensureUserExists(slackId);
-
 			// Update new tokens in balance tracking
 			const balance = currentBalances.get(slackId) || {
 				slackId,
@@ -444,10 +508,14 @@ async function processConvergeSubmissions() {
 			currentBalances.set(slackId, balance);
 
 			// Create payout record with memo
+			const baseHours = userBaseHoursMap.get(slackId) || 0;
+
 			const payoutData = {
 				tokens,
 				userId: slackId,
-				memo: `Converge payout: ${totalHours.toFixed(2)} hours worked (${START_DATE} to ${END_DATE.split('T')[0]})`
+				memo: `Converge payout: ${totalHours.toFixed(2)} hours worked (${START_DATE} to ${END_DATE.split('T')[0]})`,
+				submittedToUnified: false,
+				baseHackatimeHours: baseHours.toString()
 			};
 
 			payoutRecords.push(payoutData);
@@ -474,9 +542,6 @@ async function processConvergeSubmissions() {
 		const { platforms, email } = platformData;
 
 		if (platforms.length >= 2) {
-			// Ensure user exists in database
-			await ensureUserExists(slackId);
-
 			// Calculate potential bonus tokens (1 per platform if 2+)
 			const potentialBonusTokens = platforms.length;
 
@@ -503,7 +568,10 @@ async function processConvergeSubmissions() {
 				const platformPayoutData = {
 					tokens: actualBonusTokens,
 					userId: slackId,
-					memo: `Platform bonus: Used ${platforms.length} chat platforms (${platforms.join(', ')}) - capped at ${MAX_TOKENS} total tokens`
+					memo: `Platform bonus: Used ${platforms.length} chat platforms (${platforms.join(', ')}) - capped at ${MAX_TOKENS} total tokens`,
+					submittedToUnified: false,
+					baseHackatimeHours: "0.0",
+					overridenHours: "0.0"
 				};
 
 				payoutRecords.push(platformPayoutData);

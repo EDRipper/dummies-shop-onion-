@@ -1,4 +1,4 @@
-import { pgTable, pgView, integer, text, boolean, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, pgView, integer, text, boolean, timestamp, varchar, decimal } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
@@ -48,7 +48,10 @@ export const payouts = pgTable('payouts', {
 		.notNull()
 		.references(() => rawUsers.slackId),
 	memo: text(),
-	createdAt: timestamp().notNull().defaultNow()
+	createdAt: timestamp().notNull().defaultNow(),
+	submittedToUnified: boolean().default(false).notNull(),
+	baseHackatimeHours: decimal().default("0.0").notNull(),
+	overridenHours: decimal().default("0.0")
 });
 
 export const usersWithTokens = pgView('users_with_tokens').as((qb) => {

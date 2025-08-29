@@ -13,6 +13,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const statusFilter = url.searchParams.get('status');
 	const customerFilter = url.searchParams.get('customer');
 	const itemFilter = url.searchParams.get('item');
+	const typeFilter = url.searchParams.get('type');
 	const startDate = url.searchParams.get('startDate');
 	const endDate = url.searchParams.get('endDate');
 	const minPrice = url.searchParams.get('minPrice');
@@ -33,6 +34,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	if (itemFilter) {
 		conditions.push(ilike(shopItems.name, `%${itemFilter}%`));
+	}
+
+	if (typeFilter && typeFilter !== 'all') {
+		conditions.push(eq(shopItems.type, typeFilter as any));
 	}
 
 	if (startDate) {
@@ -85,6 +90,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			createdAt: shopOrders.createdAt,
 			itemName: shopItems.name,
 			itemImageUrl: shopItems.imageUrl,
+			itemType: shopItems.type,
 			userSlackId: rawUsers.slackId,
 			userAvatarUrl: rawUsers.avatarUrl
 		})
@@ -119,6 +125,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			status: statusFilter,
 			customer: customerFilter,
 			item: itemFilter,
+			type: typeFilter,
 			startDate,
 			endDate,
 			minPrice,

@@ -28,3 +28,5 @@ vite.config.ts.timestamp-*
 fillout-submissions.csv
 
 backup.*
+
+scripts/grant-requests-*.json

@@ -16,6 +16,7 @@
 	let statusFilter = $state(filters?.status ?? 'all');
 	let customerFilter = $state(filters?.customer ?? '');
 	let itemFilter = $state(filters?.item ?? '');
+	let typeFilter = $state(filters?.type ?? 'all');
 	let startDate = $state(filters?.startDate ?? '');
 	let endDate = $state(filters?.endDate ?? '');
 	let minPrice = $state(filters?.minPrice ?? '');
@@ -183,6 +184,7 @@
 		if (statusFilter !== 'all') params.set('status', statusFilter);
 		if (customerFilter) params.set('customer', customerFilter);
 		if (itemFilter) params.set('item', itemFilter);
+		if (typeFilter !== 'all') params.set('type', typeFilter);
 		if (startDate) params.set('startDate', startDate);
 		if (endDate) params.set('endDate', endDate);
 		if (minPrice) params.set('minPrice', minPrice);
@@ -198,6 +200,7 @@
 		customerFilter = '';
 		customerSearchTerm = '';
 		itemFilter = '';
+		typeFilter = 'all';
 		startDate = '';
 		endDate = '';
 		minPrice = '';
@@ -268,6 +271,7 @@
 		statusFilter !== 'all' ? 1 : 0,
 		customerFilter ? 1 : 0,
 		itemFilter ? 1 : 0,
+		typeFilter !== 'all' ? 1 : 0,
 		startDate ? 1 : 0,
 		endDate ? 1 : 0,
 		minPrice ? 1 : 0,
@@ -329,6 +333,31 @@
 							{statusFilter === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
 					>
 						Rejected
+					</button>
+				</div>
+
+				<!-- Quick Type Filters -->
+				<div class="flex items-center space-x-2">
+					<button
+						onclick={() => { typeFilter = 'all'; applyFilters(); }}
+						class="rounded px-3 py-1 text-sm font-medium transition-colors
+							{typeFilter === 'all' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+					>
+						All Items
+					</button>
+					<button
+						onclick={() => { typeFilter = 'hcb'; applyFilters(); }}
+						class="rounded px-3 py-1 text-sm font-medium transition-colors
+							{typeFilter === 'hcb' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+					>
+						HCB Items
+					</button>
+					<button
+						onclick={() => { typeFilter = 'third_party'; applyFilters(); }}
+						class="rounded px-3 py-1 text-sm font-medium transition-colors
+							{typeFilter === 'third_party' ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+					>
+						Third Party
 					</button>
 				</div>
 

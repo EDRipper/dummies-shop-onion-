@@ -14,6 +14,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const customerFilter = url.searchParams.get('customer');
 	const itemFilter = url.searchParams.get('item');
 	const typeFilter = url.searchParams.get('type');
+	const countryFilter = url.searchParams.get('country');
+	const yswsDbFilter = url.searchParams.get('yswsDb');
 	const startDate = url.searchParams.get('startDate');
 	const endDate = url.searchParams.get('endDate');
 	const minPrice = url.searchParams.get('minPrice');
@@ -58,6 +60,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		conditions.push(lte(shopOrders.priceAtOrder, parseInt(maxPrice)));
 	}
 
+	if (countryFilter && countryFilter !== 'all') {
+		conditions.push(eq(rawUsers.country, countryFilter));
+	}
+
+	if (yswsDbFilter && yswsDbFilter !== 'all') {
+		const isYswsDb = yswsDbFilter === 'true';
+		conditions.push(eq(rawUsers.yswsDbFulfilled, isYswsDb));
+	}
+
 	// Build order by clause
 	let orderByClause;
 	const isDesc = sortOrder === 'desc';
@@ -92,7 +103,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			itemImageUrl: shopItems.imageUrl,
 			itemType: shopItems.type,
 			userSlackId: rawUsers.slackId,
-			userAvatarUrl: rawUsers.avatarUrl
+			userAvatarUrl: rawUsers.avatarUrl,
+			userCountry: rawUsers.country,
+			userYswsDbFulfilled: rawUsers.yswsDbFulfilled
 		})
 		.from(shopOrders)
 		.leftJoin(shopItems, eq(shopOrders.shopItemId, shopItems.id))
@@ -106,7 +119,9 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			status: shopOrders.status,
 			priceAtOrder: shopOrders.priceAtOrder,
 			itemName: shopItems.name,
-			userSlackId: rawUsers.slackId
+			userSlackId: rawUsers.slackId,
+			userCountry: rawUsers.country,
+			userYswsDbFulfilled: rawUsers.yswsDbFulfilled
 		})
 		.from(shopOrders)
 		.leftJoin(shopItems, eq(shopOrders.shopItemId, shopItems.id))
@@ -114,6 +129,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	const uniqueCustomers = [...new Set(allOrders.map(o => o.userSlackId).filter(Boolean))].sort();
 	const uniqueItems = [...new Set(allOrders.map(o => o.itemName).filter(Boolean))].sort();
+	const uniqueCountries = [...new Set(allOrders.map(o => o.userCountry).filter(Boolean))].sort();
 	const priceRange = {
 		min: Math.min(...allOrders.map(o => o.priceAtOrder)),
 		max: Math.max(...allOrders.map(o => o.priceAtOrder))
@@ -126,6 +142,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			customer: customerFilter,
 			item: itemFilter,
 			type: typeFilter,
+			country: countryFilter,
+			yswsDb: yswsDbFilter,
 			startDate,
 			endDate,
 			minPrice,
@@ -136,6 +154,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		filterOptions: {
 			customers: uniqueCustomers,
 			items: uniqueItems,
+			countries: uniqueCountries,
 			priceRange
 		}
 	};

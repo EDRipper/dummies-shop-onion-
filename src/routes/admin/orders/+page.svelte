@@ -4,19 +4,22 @@
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { invalidateAll } from '$app/navigation';
+	import { getName } from 'country-list';
 
 	let { data }: { data: PageData } = $props();
 
 	// Extract properties safely
 	let orders = $state(data.orders);
 	const filters = data.filters ?? {};
-	const filterOptions = data.filterOptions ?? { customers: [], items: [], priceRange: { min: 0, max: 1000 } };
+	const filterOptions = data.filterOptions ?? { customers: [], items: [], countries: [], priceRange: { min: 0, max: 1000 } };
 
 	// Filter and sort state
 	let statusFilter = $state(filters?.status ?? 'all');
 	let customerFilter = $state(filters?.customer ?? '');
 	let itemFilter = $state(filters?.item ?? '');
 	let typeFilter = $state(filters?.type ?? 'all');
+	let countryFilter = $state(filters?.country ?? 'all');
+	let yswsDbFilter = $state(filters?.yswsDb ?? 'all');
 	let startDate = $state(filters?.startDate ?? '');
 	let endDate = $state(filters?.endDate ?? '');
 	let minPrice = $state(filters?.minPrice ?? '');
@@ -185,6 +188,8 @@
 		if (customerFilter) params.set('customer', customerFilter);
 		if (itemFilter) params.set('item', itemFilter);
 		if (typeFilter !== 'all') params.set('type', typeFilter);
+		if (countryFilter !== 'all') params.set('country', countryFilter);
+		if (yswsDbFilter !== 'all') params.set('yswsDb', yswsDbFilter);
 		if (startDate) params.set('startDate', startDate);
 		if (endDate) params.set('endDate', endDate);
 		if (minPrice) params.set('minPrice', minPrice);
@@ -201,6 +206,8 @@
 		customerSearchTerm = '';
 		itemFilter = '';
 		typeFilter = 'all';
+		countryFilter = 'all';
+		yswsDbFilter = 'all';
 		startDate = '';
 		endDate = '';
 		minPrice = '';
@@ -272,6 +279,8 @@
 		customerFilter ? 1 : 0,
 		itemFilter ? 1 : 0,
 		typeFilter !== 'all' ? 1 : 0,
+		countryFilter !== 'all' ? 1 : 0,
+		yswsDbFilter !== 'all' ? 1 : 0,
 		startDate ? 1 : 0,
 		endDate ? 1 : 0,
 		minPrice ? 1 : 0,
@@ -496,6 +505,39 @@
 					</select>
 				</div>
 
+				<!-- Country Filter -->
+				<div>
+					<label for="country-filter" class="mb-1 block text-sm font-medium text-gray-700">Country</label>
+					<select
+						id="country-filter"
+						bind:value={countryFilter}
+						onchange={applyFilters}
+						class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+					>
+						<option value="all">All countries</option>
+						{#each filterOptions?.countries ?? [] as countryCode}
+							<option value={countryCode}>
+								{countryCode === 'GB' ? 'UK' : countryCode === 'US' ? 'US' : (getName(countryCode) || countryCode)} ({countryCode})
+							</option>
+						{/each}
+					</select>
+				</div>
+
+				<!-- YSWS DB Status Filter -->
+				<div>
+					<label for="ysws-filter" class="mb-1 block text-sm font-medium text-gray-700">YSWS DB Status</label>
+					<select
+						id="ysws-filter"
+						bind:value={yswsDbFilter}
+						onchange={applyFilters}
+						class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+					>
+						<option value="all">All users</option>
+						<option value="true">YSWS DB fulfilled</option>
+						<option value="false">Not YSWS DB fulfilled</option>
+					</select>
+				</div>
+
 				<!-- Date Range -->
 				<div>
 					<label for="start-date" class="mb-1 block text-sm font-medium text-gray-700">Start Date</label>
@@ -588,6 +630,9 @@
 									<span class="text-gray-400">{getSortIcon('customer')}</span>
 								</div>
 							</th>
+							<th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
+								Country / YSWS
+							</th>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
 								onclick={() => toggleSort('item')}
@@ -646,6 +691,20 @@
 										/>
 										<div class="text-sm text-gray-900">
 											{order.userSlackId}
+										</div>
+									</div>
+								</td>
+								<td class="px-6 py-4 whitespace-nowrap">
+									<div class="text-sm">
+										{#if order.userCountry}
+											<div class="text-gray-900 font-medium">
+												{order.userCountry === 'GB' ? 'UK' : order.userCountry === 'US' ? 'US' : (getName(order.userCountry) || order.userCountry)} ({order.userCountry})
+											</div>
+										{:else}
+											<div class="text-gray-400 italic">No country</div>
+										{/if}
+										<div class="text-xs {order.userYswsDbFulfilled ? 'text-green-600' : 'text-gray-400'}">
+											{order.userYswsDbFulfilled ? '✓ YSWS DB' : '○ No YSWS DB'}
 										</div>
 									</div>
 								</td>

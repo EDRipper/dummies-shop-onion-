@@ -5,7 +5,9 @@ import { nanoid } from 'nanoid';
 export const rawUsers = pgTable('user', {
 	slackId: text().primaryKey(),
 	avatarUrl: text().notNull(),
-	isAdmin: boolean().default(false).notNull()
+	isAdmin: boolean().default(false).notNull(),
+	country: varchar({ length: 2 }),
+	yswsDbFulfilled: boolean().default(false).notNull()
 });
 
 export const shopItems = pgTable('shop_items', {

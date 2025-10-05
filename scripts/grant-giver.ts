@@ -10,7 +10,7 @@ import * as readline from 'readline';
 const HCBAPI_KEY = process.env.HCBAPI_KEY;
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
-const HCB_API_URL = 'https://hcbapi.skyfall.dev/api/v4/organizations/converge';
+const HCB_API_URL = 'https://hcbapi.skyfall.dev/api/v4/organizations/boba-drops';
 const AIRTABLE_BASE_ID = 'app1sLnxuQNDBZNju';
 const AIRTABLE_TABLE_NAME = 'tblsbrzyPghuKgMyz';
 
@@ -91,7 +91,7 @@ async function fetchApprovedSlackIds(): Promise<Set<string>> {
 	}
 
 	console.log('Fetching approved Slack IDs from YSWS DB...');
-	
+
 	const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${encodeURIComponent(AIRTABLE_TABLE_NAME)}`;
 	const headers = {
 		Authorization: `Bearer ${AIRTABLE_API_KEY}`,
@@ -111,7 +111,7 @@ async function fetchApprovedSlackIds(): Promise<Set<string>> {
 		if (!response.ok) {
 			throw new Error(`Failed to fetch Airtable records: ${response.status} ${response.statusText}`);
 		}
-		
+
 		const data = await response.json();
 
 		if (data.records) {
@@ -389,7 +389,7 @@ async function main() {
 
 		// Prompt user for YSWS DB filtering
 		const useYswsDbFilter = await promptUser('Only include users with YSWS DB approved submissions? (y/n): ');
-		
+
 		let approvedSlackIds: Set<string> | undefined;
 		if (useYswsDbFilter) {
 			try {

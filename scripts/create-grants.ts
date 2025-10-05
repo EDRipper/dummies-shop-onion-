@@ -7,7 +7,7 @@ import { eq, inArray } from 'drizzle-orm';
 // Configuration
 const HCBAPI_KEY = process.env.HCBAPI_KEY;
 const LOOPS_API_KEY = process.env.LOOPS_API_KEY;
-const HCB_API_BASE_URL = 'https://hcbapi.skyfall.dev/api/v4/organizations/converge/card_grants';
+const HCB_API_BASE_URL = 'https://hcbapi.skyfall.dev/api/v4/organizations/boba-drops/card_grants';
 
 interface HCBGrantRequest {
 	amount_cents: number;
@@ -89,7 +89,7 @@ async function markOrdersFulfilledAndSendEmails(allocation: GrantAllocation): Pr
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					transactionalId: "cmds33dqs1iis230ieyfsf4ue", // fulfilled email template ID
+					transactionalId: "cmge904kq3fil070i2582g0yx", // fulfilled email template ID
 					email: allocation.email,
 					dataVariables: {
 						itemName: allocation.itemName,

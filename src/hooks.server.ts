@@ -12,7 +12,7 @@ const slackMiddleware: Handle = async ({ event, resolve }) => {
 	if (event.url.toString().includes('/api/uploadthing')) return resolve(event);
 
 	const start = performance.now();
-	const sessionCookie = event.cookies.get('session');
+	const sessionCookie = event.cookies.get('_boba_mahad_says_hi_session');
 	if (!sessionCookie) return resolve(event);
 
 	let slackId;
@@ -20,7 +20,7 @@ const slackMiddleware: Handle = async ({ event, resolve }) => {
 		slackId = await symmetric.decrypt(sessionCookie, SESSIONS_SECRET);
 		if (!slackId) throw new Error();
 	} catch {
-		event.cookies.delete('session', {
+		event.cookies.delete('_boba_mahad_says_hi_session', {
 			path: '/'
 		});
 	}

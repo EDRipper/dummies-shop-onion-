@@ -79,7 +79,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 					Authorization: `Bearer ${LOOPS_API_KEY}`,
 				},
 				body: JSON.stringify({
-					transactionalId: status === "fulfilled" ? "cmds33dqs1iis230ieyfsf4ue" : "cmds3pk591ppv2n0ii2v520dd",
+					transactionalId: status === "fulfilled" ? "cmge904kq3fil070i2582g0yx" : "cmge93a9544ogzf0ijfkx26y3",
 					email,
 					dataVariables: {
 						itemName: shopItem.name,

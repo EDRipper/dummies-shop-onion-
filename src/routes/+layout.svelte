@@ -11,7 +11,7 @@
 	{#if data.user}
 		<nav class="border-b border-gray-200 bg-white px-4 py-3 shadow-sm">
 			<div class="flex items-center justify-between">
-				<a href="/" class="text-xl font-bold text-gray-900">Emporium</a>
+				<a href="/" class="text-xl font-bold text-gray-900">Boba</a>
 				<div class="flex items-center gap-4">
 					<div class="flex items-center gap-3">
 						<div class="relative">

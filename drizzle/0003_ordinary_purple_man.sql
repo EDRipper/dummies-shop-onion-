@@ -1,1 +1,0 @@
-ALTER TABLE "payouts" ADD COLUMN "memo" text;

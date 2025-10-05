@@ -1,1 +1,0 @@
-ALTER TABLE "shop_items" ADD COLUMN "usd_cost" integer;

@@ -6,7 +6,8 @@ import {
 	boolean,
 	timestamp,
 	varchar,
-	decimal
+	decimal,
+	index
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
@@ -49,7 +50,12 @@ export const shopOrders = pgTable('shop_orders', {
 	userId: text()
 		.notNull()
 		.references(() => rawUsers.slackId)
-});
+}, (table) => ({
+	userIdIdx: index('shop_orders_user_id_idx').on(table.userId),
+	shopItemIdIdx: index('shop_orders_shop_item_id_idx').on(table.shopItemId),
+	statusIdx: index('shop_orders_status_idx').on(table.status),
+	createdAtIdx: index('shop_orders_created_at_idx').on(table.createdAt)
+}));
 
 export const payouts = pgTable('payouts', {
 	id: text()
@@ -64,7 +70,11 @@ export const payouts = pgTable('payouts', {
 	submittedToUnified: boolean().default(false).notNull(),
 	baseHackatimeHours: decimal().default('0.0').notNull(),
 	overridenHours: decimal().default('0.0')
-});
+}, (table) => ({
+	userIdIdx: index('payouts_user_id_idx').on(table.userId),
+	createdAtIdx: index('payouts_created_at_idx').on(table.createdAt),
+	submittedToUnifiedIdx: index('payouts_submitted_to_unified_idx').on(table.submittedToUnified)
+}));
 
 export const usersWithTokens = pgView('users_with_tokens').as((qb) => {
 	return qb

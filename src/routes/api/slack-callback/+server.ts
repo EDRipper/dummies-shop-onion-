@@ -3,6 +3,7 @@ import { SESSIONS_SECRET, SLACK_CLIENT_SECRET } from '$env/static/private';
 import { db, rawUsers } from '$lib/server/db';
 import { json, redirect } from '@sveltejs/kit';
 import { symmetric } from '$lib/server/crypto';
+import type { RequestEvent } from '@sveltejs/kit';
 
 const MISSING_SLACK_OAUTH_CODE = 'Missing Slack OAuth code';
 const BAD_SLACK_OPENID_RESPONSE_STATUS = 'Bad Slack OpenID response status';
@@ -30,7 +31,7 @@ function parseJwt(slackIdToken: string) {
 	return JSON.parse(jsonPayload);
 }
 
-export async function GET({ url, cookies }) {
+export async function GET({ url, cookies }: RequestEvent) {
 	const searchParams = url.searchParams;
 	const code = searchParams.get('code');
 	if (!code) {
@@ -71,6 +72,7 @@ export async function GET({ url, cookies }) {
 
 	const slackId = jwt['https://slack.com/user_id'];
 	const avatarUrl = jwt.picture;
+	const displayName = jwt.name;
 
 	// console.log(jwt)
 
@@ -78,13 +80,14 @@ export async function GET({ url, cookies }) {
 		.insert(rawUsers)
 		.values({
 			slackId,
+			displayName,
 			avatarUrl,
 			isAdmin: false
 		})
 		.onConflictDoUpdate({
 			target: rawUsers.slackId,
 			set: {
-				// update the avatar on each login!
+				displayName,
 				avatarUrl
 			}
 		});

@@ -11,7 +11,12 @@
 	// Extract properties safely
 	let orders = $state(data.orders);
 	const filters = data.filters ?? {};
-	const filterOptions = data.filterOptions ?? { customers: [], items: [], countries: [], priceRange: { min: 0, max: 1000 } };
+	const filterOptions = data.filterOptions ?? {
+		customers: [],
+		items: [],
+		countries: [],
+		priceRange: { min: 0, max: 1000 }
+	};
 
 	// Filter and sort state
 	let statusFilter = $state(filters?.status ?? 'all');
@@ -53,8 +58,8 @@
 	// Filter customers based on search term
 	const filteredCustomers = $derived(() => {
 		if (!customerSearchTerm) return filterOptions.customers.filter(Boolean);
-		return filterOptions.customers.filter(customer =>
-			customer && customer.toLowerCase().includes(customerSearchTerm.toLowerCase())
+		return filterOptions.customers.filter(
+			(customer) => customer && customer.toLowerCase().includes(customerSearchTerm.toLowerCase())
 		);
 	});
 
@@ -247,7 +252,7 @@
 
 			if (response.ok) {
 				// Update the local state instead of refreshing the page
-				const orderIndex = orders.findIndex(order => order.id === orderId);
+				const orderIndex = orders.findIndex((order) => order.id === orderId);
 				if (orderIndex !== -1) {
 					orders[orderIndex] = { ...orders[orderIndex], status: newStatus as any, memo };
 					showToastNotification(`Order #${orderId.slice(-8)} has been ${newStatus}`, 'success');
@@ -274,18 +279,20 @@
 	}
 
 	// Get current active filters count for badge using $derived
-	const activeFiltersCount = $derived([
-		statusFilter !== 'all' ? 1 : 0,
-		customerFilter ? 1 : 0,
-		itemFilter ? 1 : 0,
-		typeFilter !== 'all' ? 1 : 0,
-		countryFilter !== 'all' ? 1 : 0,
-		yswsDbFilter !== 'all' ? 1 : 0,
-		startDate ? 1 : 0,
-		endDate ? 1 : 0,
-		minPrice ? 1 : 0,
-		maxPrice ? 1 : 0
-	].reduce((a, b) => a + b, 0));
+	const activeFiltersCount = $derived(
+		[
+			statusFilter !== 'all' ? 1 : 0,
+			customerFilter ? 1 : 0,
+			itemFilter ? 1 : 0,
+			typeFilter !== 'all' ? 1 : 0,
+			countryFilter !== 'all' ? 1 : 0,
+			yswsDbFilter !== 'all' ? 1 : 0,
+			startDate ? 1 : 0,
+			endDate ? 1 : 0,
+			minPrice ? 1 : 0,
+			maxPrice ? 1 : 0
+		].reduce((a, b) => a + b, 0)
+	);
 
 	// Update local orders when data changes (due to filtering)
 	$effect(() => {
@@ -316,30 +323,50 @@
 				<!-- Quick Status Filters -->
 				<div class="flex items-center space-x-2">
 					<button
-						onclick={() => { statusFilter = 'all'; applyFilters(); }}
+						onclick={() => {
+							statusFilter = 'all';
+							applyFilters();
+						}}
 						class="rounded px-3 py-1 text-sm font-medium transition-colors
-							{statusFilter === 'all' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+							{statusFilter === 'all'
+							? 'bg-blue-100 text-blue-700'
+							: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
 					>
 						All
 					</button>
 					<button
-						onclick={() => { statusFilter = 'pending'; applyFilters(); }}
+						onclick={() => {
+							statusFilter = 'pending';
+							applyFilters();
+						}}
 						class="rounded px-3 py-1 text-sm font-medium transition-colors
-							{statusFilter === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+							{statusFilter === 'pending'
+							? 'bg-yellow-100 text-yellow-700'
+							: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
 					>
 						Pending
 					</button>
 					<button
-						onclick={() => { statusFilter = 'fulfilled'; applyFilters(); }}
+						onclick={() => {
+							statusFilter = 'fulfilled';
+							applyFilters();
+						}}
 						class="rounded px-3 py-1 text-sm font-medium transition-colors
-							{statusFilter === 'fulfilled' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+							{statusFilter === 'fulfilled'
+							? 'bg-green-100 text-green-700'
+							: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
 					>
 						Fulfilled
 					</button>
 					<button
-						onclick={() => { statusFilter = 'rejected'; applyFilters(); }}
+						onclick={() => {
+							statusFilter = 'rejected';
+							applyFilters();
+						}}
 						class="rounded px-3 py-1 text-sm font-medium transition-colors
-							{statusFilter === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+							{statusFilter === 'rejected'
+							? 'bg-red-100 text-red-700'
+							: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
 					>
 						Rejected
 					</button>
@@ -348,23 +375,38 @@
 				<!-- Quick Type Filters -->
 				<div class="flex items-center space-x-2">
 					<button
-						onclick={() => { typeFilter = 'all'; applyFilters(); }}
+						onclick={() => {
+							typeFilter = 'all';
+							applyFilters();
+						}}
 						class="rounded px-3 py-1 text-sm font-medium transition-colors
-							{typeFilter === 'all' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+							{typeFilter === 'all'
+							? 'bg-purple-100 text-purple-700'
+							: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
 					>
 						All Items
 					</button>
 					<button
-						onclick={() => { typeFilter = 'hcb'; applyFilters(); }}
+						onclick={() => {
+							typeFilter = 'hcb';
+							applyFilters();
+						}}
 						class="rounded px-3 py-1 text-sm font-medium transition-colors
-							{typeFilter === 'hcb' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+							{typeFilter === 'hcb'
+							? 'bg-orange-100 text-orange-700'
+							: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
 					>
 						HCB Items
 					</button>
 					<button
-						onclick={() => { typeFilter = 'third_party'; applyFilters(); }}
+						onclick={() => {
+							typeFilter = 'third_party';
+							applyFilters();
+						}}
 						class="rounded px-3 py-1 text-sm font-medium transition-colors
-							{typeFilter === 'third_party' ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+							{typeFilter === 'third_party'
+							? 'bg-teal-100 text-teal-700'
+							: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
 					>
 						Third Party
 					</button>
@@ -396,7 +438,7 @@
 
 			<div class="flex items-center space-x-2">
 				<button
-					onclick={() => showFilters = !showFilters}
+					onclick={() => (showFilters = !showFilters)}
 					class="flex items-center space-x-2 rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
 				>
 					<span>Advanced Filters</span>
@@ -422,7 +464,9 @@
 			<div class="mt-4 grid grid-cols-1 gap-4 border-t pt-4 md:grid-cols-2 lg:grid-cols-4">
 				<!-- Customer Filter -->
 				<div class="relative">
-					<label for="customer-filter" class="mb-1 block text-sm font-medium text-gray-700">Customer</label>
+					<label for="customer-filter" class="mb-1 block text-sm font-medium text-gray-700"
+						>Customer</label
+					>
 					<div class="relative" bind:this={customerComboboxRef}>
 						<input
 							id="customer-filter"
@@ -451,12 +495,27 @@
 									type="button"
 								>
 									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M6 18L18 6M6 6l12 12"
+										></path>
 									</svg>
 								</button>
 							{:else}
-								<svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+								<svg
+									class="h-4 w-4 text-gray-400"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+									></path>
 								</svg>
 							{/if}
 						</div>
@@ -464,7 +523,7 @@
 						{#if customerComboboxOpen && currentFilteredCustomers.length > 0}
 							<div
 								id="customer-listbox"
-								class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+								class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-300 bg-white shadow-lg"
 								role="listbox"
 								aria-label="Customer options"
 							>
@@ -507,7 +566,9 @@
 
 				<!-- Country Filter -->
 				<div>
-					<label for="country-filter" class="mb-1 block text-sm font-medium text-gray-700">Country</label>
+					<label for="country-filter" class="mb-1 block text-sm font-medium text-gray-700"
+						>Country</label
+					>
 					<select
 						id="country-filter"
 						bind:value={countryFilter}
@@ -517,7 +578,11 @@
 						<option value="all">All countries</option>
 						{#each filterOptions?.countries ?? [] as countryCode}
 							<option value={countryCode}>
-								{countryCode === 'GB' ? 'UK' : countryCode === 'US' ? 'US' : (getName(countryCode) || countryCode)} ({countryCode})
+								{countryCode === 'GB'
+									? 'UK'
+									: countryCode === 'US'
+										? 'US'
+										: getName(countryCode) || countryCode} ({countryCode})
 							</option>
 						{/each}
 					</select>
@@ -525,7 +590,9 @@
 
 				<!-- YSWS DB Status Filter -->
 				<div>
-					<label for="ysws-filter" class="mb-1 block text-sm font-medium text-gray-700">YSWS DB Status</label>
+					<label for="ysws-filter" class="mb-1 block text-sm font-medium text-gray-700"
+						>YSWS DB Status</label
+					>
 					<select
 						id="ysws-filter"
 						bind:value={yswsDbFilter}
@@ -540,7 +607,9 @@
 
 				<!-- Date Range -->
 				<div>
-					<label for="start-date" class="mb-1 block text-sm font-medium text-gray-700">Start Date</label>
+					<label for="start-date" class="mb-1 block text-sm font-medium text-gray-700"
+						>Start Date</label
+					>
 					<input
 						id="start-date"
 						type="date"
@@ -551,7 +620,8 @@
 				</div>
 
 				<div>
-					<label for="end-date" class="mb-1 block text-sm font-medium text-gray-700">End Date</label>
+					<label for="end-date" class="mb-1 block text-sm font-medium text-gray-700">End Date</label
+					>
 					<input
 						id="end-date"
 						type="date"
@@ -563,7 +633,9 @@
 
 				<!-- Price Range -->
 				<div>
-					<label for="min-price" class="mb-1 block text-sm font-medium text-gray-700">Min Price</label>
+					<label for="min-price" class="mb-1 block text-sm font-medium text-gray-700"
+						>Min Price</label
+					>
 					<input
 						id="min-price"
 						type="number"
@@ -576,7 +648,9 @@
 				</div>
 
 				<div>
-					<label for="max-price" class="mb-1 block text-sm font-medium text-gray-700">Max Price</label>
+					<label for="max-price" class="mb-1 block text-sm font-medium text-gray-700"
+						>Max Price</label
+					>
 					<input
 						id="max-price"
 						type="number"
@@ -618,11 +692,13 @@
 				<table class="min-w-full divide-y divide-gray-200">
 					<thead class="bg-gray-50">
 						<tr>
-							<th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+							>
 								Order
 							</th>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+								class="cursor-pointer px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase hover:bg-gray-100"
 								onclick={() => toggleSort('customer')}
 							>
 								<div class="flex items-center space-x-1">
@@ -630,11 +706,13 @@
 									<span class="text-gray-400">{getSortIcon('customer')}</span>
 								</div>
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+							>
 								Country / YSWS
 							</th>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+								class="cursor-pointer px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase hover:bg-gray-100"
 								onclick={() => toggleSort('item')}
 							>
 								<div class="flex items-center space-x-1">
@@ -643,7 +721,7 @@
 								</div>
 							</th>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+								class="cursor-pointer px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase hover:bg-gray-100"
 								onclick={() => toggleSort('price')}
 							>
 								<div class="flex items-center space-x-1">
@@ -652,7 +730,7 @@
 								</div>
 							</th>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+								class="cursor-pointer px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase hover:bg-gray-100"
 								onclick={() => toggleSort('status')}
 							>
 								<div class="flex items-center space-x-1">
@@ -661,7 +739,7 @@
 								</div>
 							</th>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase cursor-pointer hover:bg-gray-100"
+								class="cursor-pointer px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase hover:bg-gray-100"
 								onclick={() => toggleSort('createdAt')}
 							>
 								<div class="flex items-center space-x-1">
@@ -669,7 +747,9 @@
 									<span class="text-gray-400">{getSortIcon('createdAt')}</span>
 								</div>
 							</th>
-							<th class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+							>
 								Actions
 							</th>
 						</tr>
@@ -690,20 +770,28 @@
 											class="mr-3 h-8 w-8 rounded-full"
 										/>
 										<div class="text-sm text-gray-900">
-											{order.userSlackId}
+											{order.userDisplayName || order.userSlackId}
 										</div>
 									</div>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="text-sm">
 										{#if order.userCountry}
-											<div class="text-gray-900 font-medium">
-												{order.userCountry === 'GB' ? 'UK' : order.userCountry === 'US' ? 'US' : (getName(order.userCountry) || order.userCountry)} ({order.userCountry})
+											<div class="font-medium text-gray-900">
+												{order.userCountry === 'GB'
+													? 'UK'
+													: order.userCountry === 'US'
+														? 'US'
+														: getName(order.userCountry) || order.userCountry} ({order.userCountry})
 											</div>
 										{:else}
 											<div class="text-gray-400 italic">No country</div>
 										{/if}
-										<div class="text-xs {order.userYswsDbFulfilled ? 'text-green-600' : 'text-gray-400'}">
+										<div
+											class="text-xs {order.userYswsDbFulfilled
+												? 'text-green-600'
+												: 'text-gray-400'}"
+										>
 											{order.userYswsDbFulfilled ? '✓ YSWS DB' : '○ No YSWS DB'}
 										</div>
 									</div>
@@ -743,20 +831,24 @@
 											<button
 												onclick={() => openMemoModal(order.id, 'fulfilled')}
 												disabled={updatingOrders.has(order.id)}
-												class="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+												class="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
 											>
 												{#if updatingOrders.has(order.id)}
-													<span class="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></span>
+													<span
+														class="mr-1 inline-block h-3 w-3 animate-spin rounded-full border-b-2 border-white"
+													></span>
 												{/if}
 												Fulfill
 											</button>
 											<button
 												onclick={() => openMemoModal(order.id, 'rejected')}
 												disabled={updatingOrders.has(order.id)}
-												class="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+												class="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
 											>
 												{#if updatingOrders.has(order.id)}
-													<span class="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></span>
+													<span
+														class="mr-1 inline-block h-3 w-3 animate-spin rounded-full border-b-2 border-white"
+													></span>
 												{/if}
 												Reject
 											</button>
@@ -768,9 +860,10 @@
 							</tr>
 							{#if order.memo}
 								<tr class="hover:bg-gray-50">
-									<td colspan="7" class="px-6 py-2 bg-gray-50">
+									<td colspan="7" class="bg-gray-50 px-6 py-2">
 										<div class="text-sm text-gray-600 italic">
-											<span class="font-medium text-gray-700">Note:</span> {order.memo}
+											<span class="font-medium text-gray-700">Note:</span>
+											{order.memo}
 										</div>
 									</td>
 								</tr>
@@ -825,7 +918,9 @@
 				<div class="text-2xl">💰</div>
 				<div class="ml-4">
 					<div class="text-2xl font-semibold text-blue-600">
-						{orders.filter((o) => o.status === 'fulfilled').reduce((sum, order) => sum + order.priceAtOrder, 0)}
+						{orders
+							.filter((o) => o.status === 'fulfilled')
+							.reduce((sum, order) => sum + order.priceAtOrder, 0)}
 					</div>
 					<div class="text-sm text-gray-500">Total Revenue (Tokens)</div>
 				</div>
@@ -836,13 +931,23 @@
 
 <!-- Memo Modal -->
 {#if showMemoModal}
-	<div class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="memo-modal-title">
+	<div
+		class="fixed inset-0 z-50 overflow-y-auto"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="memo-modal-title"
+	>
 		<div class="flex min-h-screen items-center justify-center p-4">
 			<!-- Backdrop -->
-			<div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick={closeMemoModal}></div>
+			<div
+				class="bg-opacity-50 fixed inset-0 bg-black transition-opacity"
+				onclick={closeMemoModal}
+			></div>
 
 			<!-- Modal -->
-			<div class="relative w-full max-w-md transform overflow-hidden rounded-lg bg-white px-6 py-6 shadow-xl transition-all">
+			<div
+				class="relative w-full max-w-md transform overflow-hidden rounded-lg bg-white px-6 py-6 shadow-xl transition-all"
+			>
 				<div class="mb-4">
 					<h3 id="memo-modal-title" class="text-lg font-medium text-gray-900">
 						{memoStatus === 'fulfilled' ? 'Fulfill Order' : 'Reject Order'}
@@ -853,7 +958,7 @@
 				</div>
 
 				<div class="mb-4">
-					<label for="memo-input" class="block text-sm font-medium text-gray-700 mb-2">
+					<label for="memo-input" class="mb-2 block text-sm font-medium text-gray-700">
 						Memo
 					</label>
 					<textarea
@@ -862,7 +967,7 @@
 						onkeydown={handleMemoKeydown}
 						placeholder="Enter a note about this order decision..."
 						rows="4"
-						class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+						class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 						autofocus
 					></textarea>
 				</div>
@@ -870,20 +975,22 @@
 				<div class="flex justify-end space-x-3">
 					<button
 						onclick={closeMemoModal}
-						class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
 					>
 						Cancel
 					</button>
 					<button
 						onclick={submitMemo}
 						disabled={!memoText.trim() || updatingOrders.has(memoOrderId)}
-						class="rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed
+						class="rounded-md px-4 py-2 text-sm font-medium text-white focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50
 							{memoStatus === 'fulfilled'
-								? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
-								: 'bg-red-600 hover:bg-red-700 focus:ring-red-500'}"
+							? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+							: 'bg-red-600 hover:bg-red-700 focus:ring-red-500'}"
 					>
 						{#if updatingOrders.has(memoOrderId)}
-							<span class="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></span>
+							<span
+								class="mr-1 inline-block h-3 w-3 animate-spin rounded-full border-b-2 border-white"
+							></span>
 						{/if}
 						{memoStatus === 'fulfilled' ? 'Fulfill Order' : 'Reject Order'}
 					</button>
@@ -895,26 +1002,41 @@
 
 <!-- Toast Notification -->
 {#if showToast}
-	<div class="fixed bottom-4 right-4 z-50 transform transition-all duration-300 ease-in-out">
-		<div class="rounded-lg px-4 py-3 shadow-lg {toastType === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}">
+	<div class="fixed right-4 bottom-4 z-50 transform transition-all duration-300 ease-in-out">
+		<div
+			class="rounded-lg px-4 py-3 shadow-lg {toastType === 'success'
+				? 'bg-green-600 text-white'
+				: 'bg-red-600 text-white'}"
+		>
 			<div class="flex items-center space-x-2">
 				{#if toastType === 'success'}
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"
+						></path>
 					</svg>
 				{:else}
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						></path>
 					</svg>
 				{/if}
 				<span class="text-sm font-medium">{toastMessage}</span>
 				<button
-					onclick={() => showToast = false}
+					onclick={() => (showToast = false)}
 					aria-label="Close notification"
 					class="ml-2 text-white hover:text-gray-200"
 				>
 					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						></path>
 					</svg>
 				</button>
 			</div>

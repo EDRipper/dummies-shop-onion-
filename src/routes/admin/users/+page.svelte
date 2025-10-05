@@ -71,7 +71,9 @@
 									<div class="flex items-center">
 										<img src={user.avatarUrl} alt="Avatar" class="h-10 w-10 rounded-full" />
 										<div class="ml-4">
-											<div class="text-sm font-medium text-gray-900">{user.slackId}</div>
+											<div class="text-sm font-medium text-gray-900">
+												{user.displayName || user.slackId}
+											</div>
 										</div>
 									</div>
 								</td>

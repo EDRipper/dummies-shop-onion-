@@ -1,9 +1,19 @@
-import { pgTable, pgView, integer, text, boolean, timestamp, varchar, decimal } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	pgView,
+	integer,
+	text,
+	boolean,
+	timestamp,
+	varchar,
+	decimal
+} from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
 export const rawUsers = pgTable('user', {
 	slackId: text().primaryKey(),
+	displayName: text(),
 	avatarUrl: text().notNull(),
 	isAdmin: boolean().default(false).notNull(),
 	country: varchar({ length: 2 }),
@@ -52,14 +62,15 @@ export const payouts = pgTable('payouts', {
 	memo: text(),
 	createdAt: timestamp().notNull().defaultNow(),
 	submittedToUnified: boolean().default(false).notNull(),
-	baseHackatimeHours: decimal().default("0.0").notNull(),
-	overridenHours: decimal().default("0.0")
+	baseHackatimeHours: decimal().default('0.0').notNull(),
+	overridenHours: decimal().default('0.0')
 });
 
 export const usersWithTokens = pgView('users_with_tokens').as((qb) => {
 	return qb
 		.select({
 			slackId: rawUsers.slackId,
+			displayName: rawUsers.displayName,
 			avatarUrl: rawUsers.avatarUrl,
 			isAdmin: rawUsers.isAdmin,
 			tokens: sql<number>`

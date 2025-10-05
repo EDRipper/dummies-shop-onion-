@@ -31,7 +31,12 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	}
 
 	if (customerFilter) {
-		conditions.push(ilike(rawUsers.slackId, `%${customerFilter}%`));
+		conditions.push(
+			or(
+				ilike(rawUsers.slackId, `%${customerFilter}%`),
+				ilike(rawUsers.displayName, `%${customerFilter}%`)
+			)
+		);
 	}
 
 	if (itemFilter) {
@@ -81,7 +86,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			orderByClause = isDesc ? desc(shopOrders.status) : asc(shopOrders.status);
 			break;
 		case 'customer':
-			orderByClause = isDesc ? desc(rawUsers.slackId) : asc(rawUsers.slackId);
+			orderByClause = isDesc ? desc(rawUsers.displayName) : asc(rawUsers.displayName);
 			break;
 		case 'item':
 			orderByClause = isDesc ? desc(shopItems.name) : asc(shopItems.name);
@@ -103,6 +108,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			itemImageUrl: shopItems.imageUrl,
 			itemType: shopItems.type,
 			userSlackId: rawUsers.slackId,
+			userDisplayName: rawUsers.displayName,
 			userAvatarUrl: rawUsers.avatarUrl,
 			userCountry: rawUsers.country,
 			userYswsDbFulfilled: rawUsers.yswsDbFulfilled
@@ -120,6 +126,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			priceAtOrder: shopOrders.priceAtOrder,
 			itemName: shopItems.name,
 			userSlackId: rawUsers.slackId,
+			userDisplayName: rawUsers.displayName,
 			userCountry: rawUsers.country,
 			userYswsDbFulfilled: rawUsers.yswsDbFulfilled
 		})
@@ -127,12 +134,14 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		.leftJoin(shopItems, eq(shopOrders.shopItemId, shopItems.id))
 		.leftJoin(rawUsers, eq(shopOrders.userId, rawUsers.slackId));
 
-	const uniqueCustomers = [...new Set(allOrders.map(o => o.userSlackId).filter(Boolean))].sort();
-	const uniqueItems = [...new Set(allOrders.map(o => o.itemName).filter(Boolean))].sort();
-	const uniqueCountries = [...new Set(allOrders.map(o => o.userCountry).filter(Boolean))].sort();
+	const uniqueCustomers = [
+		...new Set(allOrders.map((o) => o.userDisplayName || o.userSlackId).filter(Boolean))
+	].sort();
+	const uniqueItems = [...new Set(allOrders.map((o) => o.itemName).filter(Boolean))].sort();
+	const uniqueCountries = [...new Set(allOrders.map((o) => o.userCountry).filter(Boolean))].sort();
 	const priceRange = {
-		min: Math.min(...allOrders.map(o => o.priceAtOrder)),
-		max: Math.max(...allOrders.map(o => o.priceAtOrder))
+		min: Math.min(...allOrders.map((o) => o.priceAtOrder)),
+		max: Math.max(...allOrders.map((o) => o.priceAtOrder))
 	};
 
 	return {

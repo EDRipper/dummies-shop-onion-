@@ -7,15 +7,18 @@
 
 <div class="mx-auto max-w-6xl space-y-6">
 	<div class="flex items-center justify-between">
-		<h1 class="text-3xl font-semibold">Admin Dashboard</h1>
+		<div>
+			<h1 class="text-3xl font-semibold">Admin Dashboard</h1>
+			<p class="text-md text-gray-700">right, let's do this thing!</p>
+		</div>
 		<div class="flex space-x-3">
-			<a href="/admin/users" class="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
+			<a href="/admin/users" class="rounded bg-violet-600 px-4 py-2 text-white hover:bg-violet-700">
 				View Users
 			</a>
-			<a href="/admin/orders" class="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
+			<a href="/admin/orders" class="rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
 				View Orders
 			</a>
-			<a href="/admin/new" class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+			<a href="/admin/new" class="rounded bg-sky-600 px-4 py-2 text-white hover:bg-sky-700">
 				Add New Item
 			</a>
 		</div>

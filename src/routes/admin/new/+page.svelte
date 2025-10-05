@@ -36,7 +36,7 @@
 </script>
 
 <div class="mx-auto max-w-2xl space-y-6">
-	<h1 class="text-3xl font-bold">Add New Item</h1>
+	<h1 class="text-3xl font-semibold">Add New Item</h1>
 
 	<form method="POST" use:enhance class="space-y-4">
 		<div>

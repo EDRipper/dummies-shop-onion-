@@ -296,7 +296,7 @@
 <div class="mx-auto max-w-7xl space-y-6">
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold">Order Management</h1>
+			<h1 class="text-3xl font-semibold">Order Management</h1>
 			<p class="mt-1 text-gray-600">
 				View and manage all customer orders
 				{#if orders.length > 0}
@@ -788,7 +788,7 @@
 			<div class="flex items-center">
 				<div class="text-2xl">📦</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-gray-900">
+					<div class="text-2xl font-semibold text-gray-900">
 						{orders.filter((o) => o.status === 'pending').length}
 					</div>
 					<div class="text-sm text-gray-500">Pending Orders</div>
@@ -800,7 +800,7 @@
 			<div class="flex items-center">
 				<div class="text-2xl">✅</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-green-600">
+					<div class="text-2xl font-semibold text-green-600">
 						{orders.filter((o) => o.status === 'fulfilled').length}
 					</div>
 					<div class="text-sm text-gray-500">Fulfilled Orders</div>
@@ -812,7 +812,7 @@
 			<div class="flex items-center">
 				<div class="text-2xl">❌</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-red-600">
+					<div class="text-2xl font-semibold text-red-600">
 						{orders.filter((o) => o.status === 'rejected').length}
 					</div>
 					<div class="text-sm text-gray-500">Rejected Orders</div>
@@ -824,7 +824,7 @@
 			<div class="flex items-center">
 				<div class="text-2xl">💰</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-blue-600">
+					<div class="text-2xl font-semibold text-blue-600">
 						{orders.filter((o) => o.status === 'fulfilled').reduce((sum, order) => sum + order.priceAtOrder, 0)}
 					</div>
 					<div class="text-sm text-gray-500">Total Revenue (Tokens)</div>

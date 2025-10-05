@@ -59,7 +59,7 @@
 	<h3 class="text-lg font-semibold">{item.name}</h3>
 	<p class="mt-1 flex-1 text-sm text-gray-600">{item.description}</p>
 	<div class="mt-4 flex items-center justify-between">
-		<span class="text-lg font-bold">{item.price} tokens</span>
+		<span class="text-lg font-semibold">{item.price} tokens</span>
 		<button
 			onclick={handleBuy}
 			disabled={isOrdering || !canAfford}

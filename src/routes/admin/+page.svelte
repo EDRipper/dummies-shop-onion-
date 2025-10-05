@@ -7,7 +7,7 @@
 
 <div class="mx-auto max-w-6xl space-y-6">
 	<div class="flex items-center justify-between">
-		<h1 class="text-3xl font-bold">Admin Dashboard</h1>
+		<h1 class="text-3xl font-semibold">Admin Dashboard</h1>
 		<div class="flex space-x-3">
 			<a href="/admin/users" class="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
 				View Users
@@ -28,7 +28,7 @@
 				<h3 class="text-lg font-semibold">{item.name}</h3>
 				<p class="mt-2 text-sm text-gray-600">{item.description}</p>
 				<div class="mt-4 flex items-center justify-between">
-					<span class="text-lg font-bold">{item.price} tokens</span>
+					<span class="text-lg font-semibold">{item.price} tokens</span>
 					<span class="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">
 						{item.type}
 					</span>

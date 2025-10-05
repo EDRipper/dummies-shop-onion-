@@ -5,7 +5,7 @@
 @source "../node_modules/@uploadthing/svelte/dist";
 
 @theme {
-	--font-sans: 'Fraunces Variable', system-ui, sans-serif;
+	--font-sans: 'Outfit Variable', system-ui, sans-serif;
 	--color-background: #e6cfb5;
 	--color-card: #f5e9d4;
 	/* --color-foreground: #552200; */

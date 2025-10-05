@@ -21,7 +21,7 @@
 
 <div class="mx-auto max-w-7xl space-y-6">
 	<div class="flex items-center justify-between">
-		<h1 class="text-3xl font-bold">User Management</h1>
+		<h1 class="text-3xl font-semibold">User Management</h1>
 		<a href="/admin" class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
 			Back to Admin
 		</a>

@@ -31,7 +31,7 @@
 <div class="mx-auto max-w-6xl space-y-6">
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-3xl font-bold">Ordered items</h1>
+			<h1 class="text-3xl font-semibold">Ordered items</h1>
 			<p class="mt-1 text-gray-600">View your items currently ordered</p>
 		</div>
 	</div>
@@ -134,7 +134,7 @@
 			<div class="flex items-center">
 				<div class="text-2xl">📦</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-gray-900">
+					<div class="text-2xl font-semibold text-gray-900">
 						{orders.filter((o) => o.status === 'pending').length}
 					</div>
 					<div class="text-sm text-gray-500">Pending Orders</div>
@@ -146,7 +146,7 @@
 			<div class="flex items-center">
 				<div class="text-2xl">✅</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-green-600">
+					<div class="text-2xl font-semibold text-green-600">
 						{orders.filter((o) => o.status === 'fulfilled').length}
 					</div>
 					<div class="text-sm text-gray-500">Fulfilled Orders</div>
@@ -158,7 +158,7 @@
 			<div class="flex items-center">
 				<div class="text-2xl">❌</div>
 				<div class="ml-4">
-					<div class="text-2xl font-bold text-red-600">
+					<div class="text-2xl font-semibold text-red-600">
 						{orders.filter((o) => o.status === 'rejected').length}
 					</div>
 					<div class="text-sm text-gray-500">Rejected Orders</div>

@@ -5,6 +5,7 @@
       "name": "converge-store",
       "dependencies": {
         "@fontsource-variable/fraunces": "^5.2.7",
+        "@fontsource-variable/outfit": "^5.2.8",
         "@slack/web-api": "^7.9.3",
         "@types/pg": "^8.15.4",
         "@uploadthing/svelte": "^7.3.2",
@@ -102,6 +103,8 @@
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.6", "", { "os": "win32", "cpu": "x64" }, "sha512-NgJPHHbEpLQgDH2MjQu90pzW/5vvXIZ7KOnPyNBm92A6WgZ/7b6fJyUBjoumLqeOQQGqY2QjQxRo97ah4Sj0cA=="],
 
     "@fontsource-variable/fraunces": ["@fontsource-variable/fraunces@5.2.7", "", {}, "sha512-PYIcwL3+0SA2IEAcA9ma07Rz8DCbJdLy7Hb1syq/FIcCyf1zSlHRRcC0a33PnBCZ9Q7B+01kFH0cS29yqWEk3w=="],
+
+    "@fontsource-variable/outfit": ["@fontsource-variable/outfit@5.2.8", "", {}, "sha512-4oUDCZx/Tcz6HZP423w/niqEH31Gks5IsqHV2ZZz1qKHaVIZdj2f0/S1IK2n8jl6Xo0o3N+3RjNHlV9R73ozQA=="],
 
     "@isaacs/fs-minipass": ["@isaacs/fs-minipass@4.0.1", "", { "dependencies": { "minipass": "^7.0.4" } }, "sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w=="],
 

@@ -11,7 +11,7 @@
 	{#if data.user}
 		<nav class="border-b border-gray-200 bg-white px-4 py-3 shadow-sm">
 			<div class="flex items-center justify-between">
-				<a href="/" class="text-xl font-semibold text-gray-900">Boba</a>
+				<a href="/" class="text-xl font-semibold text-gray-900">Boba Olympics Shop</a>
 				<div class="flex items-center gap-4">
 					<div class="flex items-center gap-3">
 						<div class="relative group">

@@ -7,7 +7,7 @@
 </script>
 
 <div class="mx-auto text-center">
-	<h1 class="text-4xl font-semibold">Welcome to the shop</h1>
+	<h1 class="text-4xl font-semibold">Welcome to the Bobatastic Shop</h1>
 	<p class="text-2xl">
 		You have {user.tokens == 0 ? 'no' : user.tokens}
 		{user.tokens === 1 ? 'token' : 'tokens'}.

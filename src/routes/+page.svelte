@@ -11,8 +11,8 @@
 		<div class="mx-auto flex max-w-3xl flex-col gap-1">
 			<h1 class="text-3xl font-semibold animate-floaty">welcome to the store!</h1>
 			<p class="boba-subtitle">
-				you have {user.tokens == 0 ? 'no' : user.tokens}
-				{user.tokens === 1 ? 'token' : 'tokens'} to spend.
+				you have {data.user.tokens == 0 ? 'no' : data.user.tokens}
+				{data.user.tokens === 1 ? 'token' : 'tokens'} to spend.
 			</p>
 		</div>
 	</section>

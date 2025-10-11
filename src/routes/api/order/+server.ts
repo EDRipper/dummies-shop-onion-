@@ -50,6 +50,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			);
 		}
 
+		const remainingTokens = user.tokens - item.price;
+
 		// Create the order
 		const newOrder = await db
 			.insert(shopOrders)
@@ -64,7 +66,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({
 			success: true,
 			order: newOrder[0],
-			message: 'Order created successfully'
+			message: 'Order created successfully',
+			remainingTokens
 		});
 	} catch (error) {
 		console.error('Order creation error:', error);

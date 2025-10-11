@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import type { ShopItem } from '$lib/server/db/schema';
 	import confetti from 'canvas-confetti';
 
@@ -11,8 +12,12 @@
 
 	let isOrdering = $state(false);
 	let orderMessage = $state('');
+	let availableTokens = $state(userTokens);
+	const canAfford = $derived(availableTokens >= item.price);
 
-	const canAfford = $derived(userTokens >= item.price);
+	$effect(() => {
+		availableTokens = userTokens;
+	});
 
 	async function handleBuy() {
 		if (isOrdering || !canAfford) return;
@@ -31,17 +36,18 @@
 
 			const result = await response.json();
 
-				if (response.ok) {
-					orderMessage = result.message || 'Order placed successfully!';
-					confetti({
-						particleCount: 100,
-						spread: 70,
-						origin: { y: 0.6 }
-					});
-					window.location.reload();
-				} else {
-					orderMessage = result.error || 'Failed to place order';
-				}
+			if (response.ok) {
+				orderMessage = result.message || 'Order placed successfully!';
+				availableTokens = result.remainingTokens ?? availableTokens - item.price;
+				confetti({
+					particleCount: 100,
+					spread: 70,
+					origin: { y: 0.6 }
+				});
+				await invalidateAll();
+			} else {
+				orderMessage = result.error || 'Failed to place order';
+			}
 		} catch (error) {
 			orderMessage = 'Network error. Please try again.';
 		} finally {

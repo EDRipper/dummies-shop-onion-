@@ -29,19 +29,16 @@
 </script>
 
 <div class="flex flex-col gap-10">
-	<section class="boba-panel animate-bubble">
-		<div class="flex flex-col gap-2">
-			<h1 class="text-3xl font-semibold text-stone-900">Ordered items</h1>
-			<p class="text-base text-stone-600">View your items currently ordered</p>
-		</div>
-	</section>
+
+	{#if orders.length > 0}
+		<h2 class="text-3xl font-bold text-stone-900">Your orders</h2>
+	{/if}
 
 	<section class="boba-panel-tight animate-bubble">
 		{#if orders.length === 0}
-			<div class="flex flex-col items-center gap-3 py-10">
-				<div class="text-6xl">📦</div>
-				<h3 class="text-xl font-semibold text-stone-900">No orders yet</h3>
-				<p class="text-sm text-stone-600">Orders will appear here once items are purchased!</p>
+			<div class="flex flex-col items-center gap-1 py-6">
+				<h3 class="text-2xl font-semibold text-stone-900">No orders... yet</h3>
+				<p class="text-stone-600">Buy something and it'll show up here!</p>
 			</div>
 		{:else}
 			<div class="overflow-x-auto">

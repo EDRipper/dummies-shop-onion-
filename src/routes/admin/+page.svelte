@@ -10,10 +10,6 @@
 		<div class="space-y-2">
 			<h1 class="text-3xl font-semibold text-stone-900">Admin Dashboard</h1>
 			<p class="text-base text-stone-600">right, let&apos;s do this thing!</p>
-			<div class="flex flex-wrap gap-2">
-				<span class="boba-badge text-xs uppercase tracking-[0.16em]">Live inventory</span>
-				<span class="boba-badge text-xs uppercase tracking-[0.16em]">Instant updates</span>
-			</div>
 		</div>
 		<div class="flex flex-wrap items-center gap-3">
 			<a href="/admin/users" class="boba-action motion-pop text-sm md:text-base">View Users</a>

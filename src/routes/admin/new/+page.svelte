@@ -35,7 +35,7 @@
 	});
 </script>
 
-<div class="mx-auto max-w-2xl space-y-6">
+<div class="mx-auto w-full md:w-2xl space-y-6">
 	<h1 class="text-3xl font-semibold">Add New Item</h1>
 
 	<form method="POST" use:enhance class="space-y-4">
@@ -80,6 +80,19 @@
 				name="price"
 				min="1"
 				value={form && 'price' in form ? form.price || '' : ''}
+				required
+				class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+			/>
+		</div>
+
+		<div>
+			<label for="price" class="block text-sm font-medium">USD Cost</label>
+			<input
+				type="number"
+				id="usd-cost"
+				name="usd-cost"
+				min="1"
+				value={form && 'usd-cost' in form ? form['usd-cost']	 || '' : ''}
 				required
 				class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 			/>

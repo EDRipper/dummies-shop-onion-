@@ -33,10 +33,6 @@
 		<div class="flex flex-col gap-2">
 			<h1 class="text-3xl font-semibold text-stone-900">Ordered items</h1>
 			<p class="text-base text-stone-600">View your items currently ordered</p>
-			<div class="flex flex-wrap gap-2 pt-2">
-				<span class="boba-badge text-xs uppercase tracking-[0.14em]">Stay cozy</span>
-				<span class="boba-badge text-xs uppercase tracking-[0.14em]">Track progress</span>
-			</div>
 		</div>
 	</section>
 

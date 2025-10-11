@@ -66,12 +66,10 @@
 	.boba-action {
 		@apply inline-flex items-center justify-center rounded-full px-5 py-2 text-base font-semibold text-stone-900 transition-transform;
 		background-color: #f2d6ac;
-		box-shadow: 0 10px 0 rgba(91, 53, 34, 0.18);
 	}
 
 	.boba-action:hover {
 		transform: translateY(2px) scale(1.01);
-		box-shadow: 0 6px 0 rgba(91, 53, 34, 0.16);
 	}
 
 	.boba-action:disabled {

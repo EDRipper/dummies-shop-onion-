@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
-import { db, usersWithTokens, shopOrders, shopItems } from '$lib/server/db';
-import { eq } from 'drizzle-orm';
+import { db, usersWithTokens, shopOrders } from '$lib/server/db';
+import { count } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -11,23 +11,22 @@ export const load: PageServerLoad = async ({ locals }) => {
 	// Get all users with their token counts
 	const users = await db.select().from(usersWithTokens);
 
-	// Get all orders with user and item details
-	const orders = await db
+	const orderCounts = await db
 		.select({
-			id: shopOrders.id,
 			userId: shopOrders.userId,
-			priceAtOrder: shopOrders.priceAtOrder,
-			status: shopOrders.status,
-			createdAt: shopOrders.createdAt,
-			itemName: shopItems.name,
-			itemType: shopItems.type
+			orderCount: count(shopOrders.id).as('orderCount')
 		})
 		.from(shopOrders)
-		.leftJoin(shopItems, eq(shopOrders.shopItemId, shopItems.id))
-		.orderBy(shopOrders.createdAt);
+		.groupBy(shopOrders.userId);
+
+	const orderCountByUser = new Map(orderCounts.map(({ userId, orderCount }) => [userId, Number(orderCount)]));
+	const totalOrders = [...orderCountByUser.values()].reduce((sum, count) => sum + count, 0);
 
 	return {
-		users,
-		orders
+		users: users.map((user) => ({
+			...user,
+			orderCount: orderCountByUser.get(user.slackId) ?? 0
+		})),
+		totalOrders
 	};
 };

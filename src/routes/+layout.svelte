@@ -9,7 +9,7 @@
 
 <div class="w-full">
 	{#if data.user}
-		<nav class="flex justify-center pt-6">
+		<nav class="fixed top-6 left-0 right-0 z-50 flex justify-center">
 			<div
 				class="flex flex-wrap items-center justify-center gap-5 rounded-full border border-[#e0c7a6] bg-[rgba(255,255,255,0.85)] px-6 py-3 shadow-[0_18px_34px_rgba(65,35,20,0.12)] backdrop-blur animate-bubble"
 			>
@@ -38,6 +38,9 @@
 					</div>
 				</div>
 				<div class="flex items-center gap-3">
+					<a href="/" class="boba-action motion-pop text-sm md:text-base">
+						Home
+					</a>
 					<a href="/orders" class="boba-action motion-pop text-sm md:text-base">
 						Orders
 					</a>
@@ -50,7 +53,7 @@
 			</div>
 		</nav>
 	{/if}
-	<main class="w-full">
+	<main class="w-full mt-20">
 		<div class="boba-shell">
 			{@render children()}
 		</div>

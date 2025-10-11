@@ -1,21 +1,82 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	let { data }: { data: PageData } = $props();
-	const { users, orders } = data;
+	type UserOrder = {
+		id: string;
+		userId: string;
+		priceAtOrder: number;
+		status: 'pending' | 'fulfilled' | 'rejected';
+		createdAt: string;
+		itemName: string | null;
+		itemType: string | null;
+	};
 
-	const ordersByUser = orders.reduce(
-		(acc, order) => {
-			if (!acc[order.userId]) {
-				acc[order.userId] = [];
-			}
-			acc[order.userId].push(order);
-			return acc;
-		},
-		{} as Record<string, typeof orders>
-	);
+	type OrdersState = {
+		loading: boolean;
+		error: string | null;
+		data: UserOrder[] | null;
+	};
+
+	let { data }: { data: PageData } = $props();
+	const { users, totalOrders } = data;
 
 	let selectedUser = $state<string | null>(null);
+	let userOrders = $state<Record<string, OrdersState>>({});
+
+	const toggleOrders = async (user: PageData['users'][number]) => {
+		const userId = user.slackId;
+
+		if (selectedUser === userId) {
+			selectedUser = null;
+			return;
+		}
+
+		selectedUser = userId;
+
+		const current = userOrders[userId];
+		if (current?.data || current?.loading) {
+			return;
+		}
+
+		if (user.orderCount === 0) {
+			userOrders[userId] = {
+				loading: false,
+				error: null,
+				data: []
+			};
+			return;
+		}
+
+		userOrders[userId] = {
+			loading: true,
+			error: null,
+			data: null
+		};
+
+		try {
+			const response = await fetch(`/api/admin/users/${userId}/orders`);
+
+			if (!response.ok) {
+				throw new Error(`Failed to load orders (${response.status})`);
+			}
+
+			const body = await response.json();
+
+			userOrders[userId] = {
+				loading: false,
+				error: null,
+				data: body.orders ?? []
+			};
+		} catch (error) {
+			console.error('Failed to fetch orders', error);
+
+			userOrders[userId] = {
+				loading: false,
+				error: 'Could not load orders. Please try again.',
+				data: null
+			};
+		}
+	};
 </script>
 
 <div class="flex flex-col gap-10">
@@ -69,57 +130,67 @@
 									{/if}
 								</td>
 								<td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-stone-800">
-									{ordersByUser[user.slackId]?.length || 0} orders
+									{user.orderCount} {user.orderCount === 1 ? 'order' : 'orders'}
 								</td>
 								<td class="px-6 py-4 text-sm font-semibold whitespace-nowrap">
 									<button
-										onclick={() =>
-											(selectedUser = selectedUser === user.slackId ? null : user.slackId)}
+										onclick={() => toggleOrders(user)}
 										class="text-[#8d5c3f] transition hover:text-[#5b3522]"
 									>
 										{selectedUser === user.slackId ? 'Hide' : 'View'} Orders
 									</button>
 								</td>
 							</tr>
-							{#if selectedUser === user.slackId && ordersByUser[user.slackId]}
+							{#if selectedUser === user.slackId}
+								{@const ordersState = userOrders[user.slackId]}
 								<tr class="bg-[rgba(244,213,178,0.25)]">
 									<td colspan="5" class="px-6 py-4">
 										<div class="space-y-3 rounded-2xl border border-[#ead2b2] bg-[rgba(255,255,255,0.6)] p-4">
 											<h4 class="text-sm font-semibold uppercase tracking-wider text-stone-700">
 												Order History
 											</h4>
-											<div class="space-y-2">
-												{#each ordersByUser[user.slackId] as order}
-													<div class="boba-panel-tight flex flex-col gap-3 bg-[rgba(255,255,255,0.85)] p-4">
-														<div class="flex flex-wrap items-center justify-between gap-3">
-															<div class="flex items-center gap-3 text-sm font-medium text-stone-900">
-																{order.itemName}
-																<span class="boba-badge text-[10px] uppercase tracking-[0.2em]">
-																	{order.itemType}
+											<div class="space-y-2 text-sm">
+												{#if ordersState?.loading}
+													<p class="text-stone-600">Loading orders…</p>
+												{:else if ordersState?.error}
+													<p class="text-red-600">{ordersState.error}</p>
+												{:else if ordersState?.data && ordersState.data.length > 0}
+													{#each ordersState.data as order}
+														<div class="boba-panel-tight flex flex-col gap-3 bg-[rgba(255,255,255,0.85)] p-4">
+															<div class="flex flex-wrap items-center justify-between gap-3">
+																<div class="flex items-center gap-3 text-sm font-medium text-stone-900">
+																	{order.itemName ?? 'Unknown item'}
+																	{#if order.itemType}
+																		<span class="boba-badge text-[10px] uppercase tracking-[0.2em]">
+																			{order.itemType}
+																		</span>
+																	{/if}
+																</div>
+																<span class="boba-chip text-xs">
+																	<span class="text-base font-bold">{order.priceAtOrder}</span>
+																	<span>tokens</span>
 																</span>
 															</div>
-															<span class="boba-chip text-xs">
-																<span class="text-base font-bold">{order.priceAtOrder}</span>
-																<span>tokens</span>
-															</span>
+															<div class="flex flex-wrap items-center justify-between gap-3 text-xs text-stone-600">
+																<span
+																	class="inline-flex items-center rounded-full px-3 py-1 font-semibold
+																	{order.status === 'fulfilled'
+																		? 'bg-[#d5f5d4] text-[#2f7d43]'
+																		: order.status === 'rejected'
+																			? 'bg-[#f6c4c0] text-[#963135]'
+																			: 'bg-[#f7d8a7] text-[#7a4b21]'}"
+																>
+																	{order.status}
+																</span>
+																<span>
+																	{new Date(order.createdAt).toLocaleDateString()}
+																</span>
+															</div>
 														</div>
-														<div class="flex flex-wrap items-center justify-between gap-3 text-xs text-stone-600">
-															<span
-																class="inline-flex items-center rounded-full px-3 py-1 font-semibold
-																{order.status === 'fulfilled'
-																	? 'bg-[#d5f5d4] text-[#2f7d43]'
-																	: order.status === 'rejected'
-																		? 'bg-[#f6c4c0] text-[#963135]'
-																		: 'bg-[#f7d8a7] text-[#7a4b21]'}"
-															>
-																{order.status}
-															</span>
-															<span>
-																{new Date(order.createdAt).toLocaleDateString()}
-															</span>
-														</div>
-													</div>
-												{/each}
+													{/each}
+												{:else}
+													<p class="text-stone-600">No orders yet.</p>
+												{/if}
 											</div>
 										</div>
 									</td>
@@ -159,7 +230,7 @@
 			</div>
 			<div>
 				<div class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Total Orders</div>
-				<div class="text-xl font-semibold text-stone-900">{orders.length}</div>
+				<div class="text-xl font-semibold text-stone-900">{totalOrders}</div>
 			</div>
 		</div>
 	</section>

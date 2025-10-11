@@ -1,14 +1,13 @@
 <script lang="ts">
 	import type { ShopItem } from '$lib/server/db/schema';
 	import confetti from 'canvas-confetti';
-	import { invalidateAll } from '$app/navigation';
-	import { toast } from 'svelte-sonner';
 
 	interface Props {
 		item: ShopItem;
 		userTokens: number;
+		appearanceDelay?: number;
 	}
-	const { item, userTokens }: Props = $props();
+	const { item, userTokens, appearanceDelay = 0 }: Props = $props();
 
 	let isOrdering = $state(false);
 	let orderMessage = $state('');
@@ -32,18 +31,17 @@
 
 			const result = await response.json();
 
-			if (response.ok) {
-				orderMessage = result.message || 'Order placed successfully!';
-				confetti({
-					particleCount: 100,
-					spread: 70,
-					origin: { y: 0.6 }
-				});
-				// Refresh data to update token count
-				window.location.reload();
-			} else {
-				orderMessage = result.error || 'Failed to place order';
-			}
+				if (response.ok) {
+					orderMessage = result.message || 'Order placed successfully!';
+					confetti({
+						particleCount: 100,
+						spread: 70,
+						origin: { y: 0.6 }
+					});
+					window.location.reload();
+				} else {
+					orderMessage = result.error || 'Failed to place order';
+				}
 		} catch (error) {
 			orderMessage = 'Network error. Please try again.';
 		} finally {
@@ -53,27 +51,38 @@
 </script>
 
 <div
-	class="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-6 shadow-xs transition hover:shadow-md"
+	class="boba-panel-tight motion-pop animate-bubble flex h-full flex-col gap-5 sm:gap-6"
+	style:animation-delay={`${appearanceDelay}s`}
 >
-	<img src={item.imageUrl} alt={item.name} class="mb-4 h-48 w-full rounded-md object-cover" />
-	<h3 class="text-lg font-semibold">{item.name}</h3>
-	<p class="mt-1 flex-1 text-sm text-gray-600">{item.description}</p>
-	<div class="mt-4 flex items-center justify-between">
-		<span class="text-lg font-semibold">{item.price} tokens</span>
+	<div class="relative overflow-hidden rounded-2xl bg-[#f9e4c5] p-4 shadow-[0_12px_24px_rgba(91,53,34,0.12)]">
+		<div class="absolute -left-6 -top-6 h-16 w-16 rounded-full bg-[#f7c978] opacity-60"></div>
+		<div class="absolute -right-4 top-8 h-12 w-12 rounded-full bg-[#f1b986] opacity-50"></div>
+		<img
+			src={item.imageUrl}
+			alt={item.name}
+			class="relative z-10 h-44 w-full rounded-xl object-cover shadow-[0_14px_24px_rgba(91,53,34,0.2)]"
+		/>
+	</div>
+	<div class="flex flex-col gap-2">
+		<h3 class="text-xl font-semibold text-stone-900">{item.name}</h3>
+		<p class="flex-1 text-sm leading-relaxed text-stone-600">{item.description}</p>
+	</div>
+	<div class="flex items-center justify-between">
+		<span class="boba-chip text-base">
+			<span class="text-lg font-bold">{item.price}</span>
+			<span>{item.price === 1 ? 'token' : 'tokens'}</span>
+		</span>
 		<button
 			onclick={handleBuy}
 			disabled={isOrdering || !canAfford}
-			class="rounded-full px-8 py-2 text-white transition-colors disabled:cursor-not-allowed {canAfford &&
-			!isOrdering
-				? 'bg-blue-600 hover:bg-blue-700'
-				: 'bg-gray-400'}"
+			class="boba-action motion-pop text-sm sm:text-base"
 		>
 			{isOrdering ? 'Ordering...' : !canAfford ? 'Not enough tokens' : 'Buy'}
 		</button>
 	</div>
 	{#if orderMessage}
 		<div
-			class="mt-2 text-sm {orderMessage.includes('success') ? 'text-green-600' : 'text-red-600'}"
+			class="mt-2 text-sm {orderMessage.includes('success') ? 'text-emerald-600' : 'text-red-600'}"
 		>
 			{orderMessage}
 		</div>

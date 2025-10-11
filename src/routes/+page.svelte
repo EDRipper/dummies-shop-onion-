@@ -6,15 +6,20 @@
 	const { user, items } = data;
 </script>
 
-<div class="mx-auto text-center">
-	<h1 class="text-4xl font-semibold">Welcome to the Bobatastic Shop</h1>
-	<p class="text-2xl">
-		You have {user.tokens == 0 ? 'no' : user.tokens}
-		{user.tokens === 1 ? 'token' : 'tokens'}.
-	</p>
-	<ul class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-		{#each items as item}
-			<ItemCard {item} userTokens={user.tokens} />
+<div class="flex flex-col gap-10">
+	<section class="boba-panel text-center animate-bubble">
+		<div class="mx-auto flex max-w-3xl flex-col gap-1">
+			<h1 class="text-3xl font-semibold animate-floaty">welcome to the store!</h1>
+			<p class="boba-subtitle">
+				you have {user.tokens == 0 ? 'no' : user.tokens}
+				{user.tokens === 1 ? 'token' : 'tokens'} to spend.
+			</p>
+		</div>
+	</section>
+
+	<ul class="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
+		{#each items as item, index}
+			<ItemCard {item} userTokens={user.tokens} appearanceDelay={index * 0.09} />
 		{/each}
 	</ul>
 </div>

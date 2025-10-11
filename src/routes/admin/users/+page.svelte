@@ -4,7 +4,6 @@
 	let { data }: { data: PageData } = $props();
 	const { users, orders } = data;
 
-	// Group orders by user
 	const ordersByUser = orders.reduce(
 		(acc, order) => {
 			if (!acc[order.userId]) {
@@ -19,122 +18,103 @@
 	let selectedUser = $state<string | null>(null);
 </script>
 
-<div class="mx-auto max-w-7xl space-y-6">
-	<div class="flex items-center justify-between">
-		<h1 class="text-3xl font-semibold">User Management</h1>
-		<a href="/admin" class="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+<div class="flex flex-col gap-10">
+	<section class="boba-panel animate-bubble flex flex-wrap items-center justify-between gap-6">
+		<h1 class="text-3xl font-semibold text-stone-900">User Management</h1>
+		<a href="/admin" class="boba-action motion-pop text-sm md:text-base">
 			Back to Admin
 		</a>
-	</div>
+	</section>
 
-	<!-- Users Overview -->
-	<div class="rounded-lg bg-white shadow">
-		<div class="border-b border-gray-200 px-6 py-4">
-			<h2 class="text-xl font-semibold">Users & Tokens</h2>
+	<section class="boba-panel-tight animate-bubble overflow-hidden">
+		<div class="border-b border-[#ead2b2] px-6 py-4">
+			<h2 class="text-xl font-semibold text-stone-900">Users &amp; Tokens</h2>
 		</div>
-		<div class="p-6">
+		<div class="px-2 py-4 sm:px-6">
 			<div class="overflow-x-auto">
-				<table class="min-w-full divide-y divide-gray-200">
-					<thead class="bg-gray-50">
+				<table class="min-w-full divide-y divide-[#ead2b2]">
+					<thead class="bg-[rgba(242,214,172,0.35)] text-left uppercase tracking-wide text-xs text-stone-600">
 						<tr>
-							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>
-								User
-							</th>
-							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>
-								Tokens
-							</th>
-							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>
-								Admin
-							</th>
-							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>
-								Orders
-							</th>
-							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>
-								Actions
-							</th>
+							<th class="px-6 py-3">User</th>
+							<th class="px-6 py-3">Tokens</th>
+							<th class="px-6 py-3">Admin</th>
+							<th class="px-6 py-3">Orders</th>
+							<th class="px-6 py-3">Actions</th>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-gray-200 bg-white">
+					<tbody class="divide-y divide-[#ead2b2]">
 						{#each users as user}
-							<tr class="hover:bg-gray-50">
+							<tr class="transition hover:bg-[rgba(244,213,178,0.35)]">
 								<td class="px-6 py-4 whitespace-nowrap">
-									<div class="flex items-center">
-										<img src={user.avatarUrl} alt="Avatar" class="h-10 w-10 rounded-full" />
-										<div class="ml-4">
-											<div class="text-sm font-medium text-gray-900">
-												{user.displayName || user.slackId}
-											</div>
+									<div class="flex items-center gap-3">
+										<div class="h-11 w-11 overflow-hidden rounded-2xl bg-[#f8e2c1]">
+											<img src={user.avatarUrl} alt="Avatar" class="h-full w-full object-cover" />
+										</div>
+										<div class="text-sm font-semibold text-stone-900">
+											{user.displayName || user.slackId}
 										</div>
 									</div>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
-									<span
-										class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
-									>
-										{user.tokens} tokens
+									<span class="boba-chip text-xs sm:text-sm">
+										<span class="text-base font-bold">{user.tokens}</span>
+										<span>{Number(user.tokens) === 1 ? 'token' : 'tokens'}</span>
 									</span>
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap">
 									{#if user.isAdmin}
-										<span
-											class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800"
-										>
-											Admin
-										</span>
+										<span class="boba-badge text-xs uppercase tracking-[0.16em]">Admin</span>
 									{:else}
-										<span class="text-sm text-gray-500">User</span>
+										<span class="text-sm font-medium text-stone-500">User</span>
 									{/if}
 								</td>
-								<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
+								<td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-stone-800">
 									{ordersByUser[user.slackId]?.length || 0} orders
 								</td>
-								<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+								<td class="px-6 py-4 text-sm font-semibold whitespace-nowrap">
 									<button
 										onclick={() =>
 											(selectedUser = selectedUser === user.slackId ? null : user.slackId)}
-										class="text-indigo-600 hover:text-indigo-900"
+										class="text-[#8d5c3f] transition hover:text-[#5b3522]"
 									>
 										{selectedUser === user.slackId ? 'Hide' : 'View'} Orders
 									</button>
 								</td>
 							</tr>
 							{#if selectedUser === user.slackId && ordersByUser[user.slackId]}
-								<tr>
-									<td colspan="5" class="bg-gray-50 px-6 py-4">
-										<div class="space-y-2">
-											<h4 class="font-medium text-gray-900">Order History</h4>
+								<tr class="bg-[rgba(244,213,178,0.25)]">
+									<td colspan="5" class="px-6 py-4">
+										<div class="space-y-3 rounded-2xl border border-[#ead2b2] bg-[rgba(255,255,255,0.6)] p-4">
+											<h4 class="text-sm font-semibold uppercase tracking-wider text-stone-700">
+												Order History
+											</h4>
 											<div class="space-y-2">
 												{#each ordersByUser[user.slackId] as order}
-													<div
-														class="flex items-center justify-between rounded border bg-white p-3"
-													>
-														<div class="flex items-center space-x-4">
-															<span class="text-sm font-medium">{order.itemName}</span>
-															<span class="text-xs text-gray-500">{order.itemType}</span>
-															<span class="text-sm text-gray-600">{order.priceAtOrder} tokens</span>
+													<div class="boba-panel-tight flex flex-col gap-3 bg-[rgba(255,255,255,0.85)] p-4">
+														<div class="flex flex-wrap items-center justify-between gap-3">
+															<div class="flex items-center gap-3 text-sm font-medium text-stone-900">
+																{order.itemName}
+																<span class="boba-badge text-[10px] uppercase tracking-[0.2em]">
+																	{order.itemType}
+																</span>
+															</div>
+															<span class="boba-chip text-xs">
+																<span class="text-base font-bold">{order.priceAtOrder}</span>
+																<span>tokens</span>
+															</span>
 														</div>
-														<div class="flex items-center space-x-2">
+														<div class="flex flex-wrap items-center justify-between gap-3 text-xs text-stone-600">
 															<span
-																class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+																class="inline-flex items-center rounded-full px-3 py-1 font-semibold
 																{order.status === 'fulfilled'
-																	? 'bg-green-100 text-green-800'
+																	? 'bg-[#d5f5d4] text-[#2f7d43]'
 																	: order.status === 'rejected'
-																		? 'bg-red-100 text-red-800'
-																		: 'bg-yellow-100 text-yellow-800'}"
+																		? 'bg-[#f6c4c0] text-[#963135]'
+																		: 'bg-[#f7d8a7] text-[#7a4b21]'}"
 															>
 																{order.status}
 															</span>
-															<span class="text-xs text-gray-500">
+															<span>
 																{new Date(order.createdAt).toLocaleDateString()}
 															</span>
 														</div>
@@ -150,70 +130,37 @@
 				</table>
 			</div>
 		</div>
-	</div>
+	</section>
 
-	<!-- Summary Stats -->
-	<div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
-		<div class="overflow-hidden rounded-lg bg-white shadow">
-			<div class="p-5">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-500 text-white"
-						>
-							👥
-						</div>
-					</div>
-					<div class="ml-5 w-0 flex-1">
-						<dl>
-							<dt class="truncate text-sm font-medium text-gray-500">Total Users</dt>
-							<dd class="text-lg font-medium text-gray-900">{users.length}</dd>
-						</dl>
-					</div>
+	<section class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+		<div class="boba-panel-tight flex items-center gap-4 animate-bubble" style:animation-delay="0.05s">
+			<div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f2d6ac] text-xl">
+				👥
+			</div>
+			<div>
+				<div class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Total Users</div>
+				<div class="text-xl font-semibold text-stone-900">{users.length}</div>
+			</div>
+		</div>
+		<div class="boba-panel-tight flex items-center gap-4 animate-bubble" style:animation-delay="0.1s">
+			<div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f1c696] text-xl">
+				🪙
+			</div>
+			<div>
+				<div class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Total Tokens</div>
+				<div class="text-xl font-semibold text-stone-900">
+					{users.reduce((sum, user) => sum + Number(user.tokens), 0)}
 				</div>
 			</div>
 		</div>
-
-		<div class="overflow-hidden rounded-lg bg-white shadow">
-			<div class="p-5">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-green-500 text-white"
-						>
-							🪙
-						</div>
-					</div>
-					<div class="ml-5 w-0 flex-1">
-						<dl>
-							<dt class="truncate text-sm font-medium text-gray-500">Total Tokens</dt>
-							<dd class="text-lg font-medium text-gray-900">
-								{users.reduce((sum, user) => sum + Number(user.tokens), 0)}
-							</dd>
-						</dl>
-					</div>
-				</div>
+		<div class="boba-panel-tight flex items-center gap-4 animate-bubble" style:animation-delay="0.15s">
+			<div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7c978] text-xl">
+				📦
+			</div>
+			<div>
+				<div class="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">Total Orders</div>
+				<div class="text-xl font-semibold text-stone-900">{orders.length}</div>
 			</div>
 		</div>
-
-		<div class="overflow-hidden rounded-lg bg-white shadow">
-			<div class="p-5">
-				<div class="flex items-center">
-					<div class="flex-shrink-0">
-						<div
-							class="flex h-8 w-8 items-center justify-center rounded-md bg-purple-500 text-white"
-						>
-							📦
-						</div>
-					</div>
-					<div class="ml-5 w-0 flex-1">
-						<dl>
-							<dt class="truncate text-sm font-medium text-gray-500">Total Orders</dt>
-							<dd class="text-lg font-medium text-gray-900">{orders.length}</dd>
-						</dl>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+	</section>
 </div>

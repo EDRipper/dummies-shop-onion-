@@ -43,7 +43,9 @@ const redirectMiddleware: Handle = async ({ event, resolve }) => {
 	if (event.url.toString().includes('/api/uploadthing')) return resolve(event);
 
 	if (!event.locals.user && event.url.pathname !== '/api/slack-callback') {
-		const authorizeUrl = `https://hackclub.slack.com/oauth/v2/authorize?scope=&user_scope=openid%2Cprofile%2Cemail&redirect_uri=${event.url.origin}/api/slack-callback&client_id=${PUBLIC_SLACK_CLIENT_ID}`;
+		// Force HTTPS for the redirect URI
+		const redirectUri = process.env.ORIGIN || event.url.origin.replace('http://', 'https://');
+		const authorizeUrl = `https://hackclub.slack.com/oauth/v2/authorize?scope=&user_scope=openid%2Cprofile%2Cemail&redirect_uri=${redirectUri}/api/slack-callback&client_id=${PUBLIC_SLACK_CLIENT_ID}`;
 		return redirect(302, authorizeUrl);
 	}
 

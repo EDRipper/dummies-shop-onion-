@@ -43,8 +43,11 @@ export async function GET({ url, cookies }: RequestEvent) {
 	exchangeSearchParams.append('client_id', PUBLIC_SLACK_CLIENT_ID);
 	exchangeSearchParams.append('client_secret', SLACK_CLIENT_SECRET);
 	exchangeSearchParams.append('code', code);
-	console.log(`${url.origin}/api/slack-callback`);
-	exchangeSearchParams.append('redirect_uri', `${url.origin}/api/slack-callback`);
+	
+	// Force HTTPS for the redirect URI
+	const redirectUri = process.env.ORIGIN || url.origin.replace('http://', 'https://');
+	console.log(`${redirectUri}/api/slack-callback`);
+	exchangeSearchParams.append('redirect_uri', `${redirectUri}/api/slack-callback`);
 
 	const oidcResponse = await fetch(exchangeUrl, { method: 'POST' });
 	if (oidcResponse.status !== 200) {

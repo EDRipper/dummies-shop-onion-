@@ -37,31 +37,275 @@
 		}
 	});
 
-	// Preset SQL queries
+	// Preset SQL queries organized by category
 	const presetQueries = [
+		// === VIEWING DATA ===
 		{
+			category: 'View Data',
 			name: 'View All Users',
 			query: 'SELECT "slackId", "displayName", "isAdmin", "country", "yswsDbFulfilled" FROM "user" ORDER BY "displayName";'
 		},
 		{
+			category: 'View Data',
 			name: 'View All Orders',
 			query: 'SELECT o.id, o."userId", o.status, o."priceAtOrder", o."createdAt", i.name as "itemName" FROM shop_orders o LEFT JOIN shop_items i ON o."shopItemId" = i.id ORDER BY o."createdAt" DESC LIMIT 20;'
 		},
 		{
+			category: 'View Data',
 			name: 'View All Items',
 			query: 'SELECT * FROM shop_items ORDER BY name;'
 		},
 		{
+			category: 'View Data',
 			name: 'User Token Summary',
 			query: 'SELECT "slackId", "displayName", tokens FROM users_with_tokens ORDER BY tokens DESC;'
 		},
 		{
+			category: 'View Data',
 			name: 'Payouts Summary',
 			query: 'SELECT "userId", SUM(tokens) as total_tokens FROM payouts GROUP BY "userId" ORDER BY total_tokens DESC LIMIT 20;'
 		},
 		{
+			category: 'View Data',
 			name: 'Recent Activity',
 			query: 'SELECT o.id, o."userId", o.status, o."createdAt", u."displayName", i.name FROM shop_orders o LEFT JOIN "user" u ON o."userId" = u."slackId" LEFT JOIN shop_items i ON o."shopItemId" = i.id ORDER BY o."createdAt" DESC LIMIT 10;'
+		},
+		{
+			category: 'View Data',
+			name: 'Admin Users Only',
+			query: 'SELECT "slackId", "displayName", "country" FROM "user" WHERE "isAdmin" = true ORDER BY "displayName";'
+		},
+		{
+			category: 'View Data',
+			name: 'Users with No Orders',
+			query: 'SELECT u."slackId", u."displayName", u.tokens FROM users_with_tokens u WHERE u."slackId" NOT IN (SELECT DISTINCT "userId" FROM shop_orders) ORDER BY u.tokens DESC;'
+		},
+		{
+			category: 'View Data',
+			name: 'Top 10 Spenders',
+			query: 'SELECT o."userId", u."displayName", SUM(o."priceAtOrder") as total_spent, COUNT(*) as order_count FROM shop_orders o LEFT JOIN "user" u ON o."userId" = u."slackId" GROUP BY o."userId", u."displayName" ORDER BY total_spent DESC LIMIT 10;'
+		},
+		{
+			category: 'View Data',
+			name: 'Pending Orders Summary',
+			query: 'SELECT COUNT(*) as pending_count, SUM("priceAtOrder") as total_pending_value FROM shop_orders WHERE status = \'pending\';'
+		},
+
+		// === USER MANAGEMENT ===
+		{
+			category: 'User Management',
+			name: 'Make User Admin (Replace SLACK_ID)',
+			query: 'UPDATE "user" SET "isAdmin" = true WHERE "slackId" = \'SLACK_ID_HERE\';'
+		},
+		{
+			category: 'User Management',
+			name: 'Remove Admin Status (Replace SLACK_ID)',
+			query: 'UPDATE "user" SET "isAdmin" = false WHERE "slackId" = \'SLACK_ID_HERE\';'
+		},
+		{
+			category: 'User Management',
+			name: 'Set User Country (Replace SLACK_ID and COUNTRY)',
+			query: 'UPDATE "user" SET country = \'US\' WHERE "slackId" = \'SLACK_ID_HERE\';'
+		},
+		{
+			category: 'User Management',
+			name: 'Mark User YSWS DB Fulfilled (Replace SLACK_ID)',
+			query: 'UPDATE "user" SET "yswsDbFulfilled" = true WHERE "slackId" = \'SLACK_ID_HERE\';'
+		},
+		{
+			category: 'User Management',
+			name: 'Delete User (Replace SLACK_ID)',
+			query: 'DELETE FROM "user" WHERE "slackId" = \'SLACK_ID_HERE\';'
+		},
+		{
+			category: 'User Management',
+			name: 'Update User Display Name (Replace VALUES)',
+			query: 'UPDATE "user" SET "displayName" = \'NEW_NAME\' WHERE "slackId" = \'SLACK_ID_HERE\';'
+		},
+
+		// === TOKEN MANAGEMENT ===
+		{
+			category: 'Token Management',
+			name: 'Add 100 Tokens to User (Replace SLACK_ID)',
+			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") VALUES (\'SLACK_ID_HERE\', 100, NOW());'
+		},
+		{
+			category: 'Token Management',
+			name: 'Add 50 Tokens to User (Replace SLACK_ID)',
+			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") VALUES (\'SLACK_ID_HERE\', 50, NOW());'
+		},
+		{
+			category: 'Token Management',
+			name: 'Add 250 Tokens to User (Replace SLACK_ID)',
+			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") VALUES (\'SLACK_ID_HERE\', 250, NOW());'
+		},
+		{
+			category: 'Token Management',
+			name: 'Add Custom Tokens (Replace SLACK_ID and AMOUNT)',
+			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") VALUES (\'SLACK_ID_HERE\', 999, NOW());'
+		},
+		{
+			category: 'Token Management',
+			name: 'View User Token History (Replace SLACK_ID)',
+			query: 'SELECT * FROM payouts WHERE "userId" = \'SLACK_ID_HERE\' ORDER BY "createdAt" DESC;'
+		},
+		{
+			category: 'Token Management',
+			name: 'Delete All Payouts for User (Replace SLACK_ID)',
+			query: 'DELETE FROM payouts WHERE "userId" = \'SLACK_ID_HERE\';'
+		},
+		{
+			category: 'Token Management',
+			name: 'Reset ALL User Tokens to Zero',
+			query: 'DELETE FROM payouts;'
+		},
+		{
+			category: 'Token Management',
+			name: 'Give Everyone 100 Tokens',
+			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") SELECT "slackId", 100, NOW() FROM "user";'
+		},
+
+		// === ITEM MANAGEMENT ===
+		{
+			category: 'Item Management',
+			name: 'Create New Item (Replace VALUES)',
+			query: 'INSERT INTO shop_items (name, description, "imageUrl", price, usd_cost, type) VALUES (\'Item Name\', \'Description\', \'https://image.url\', 50, 25, \'hcb\');'
+		},
+		{
+			category: 'Item Management',
+			name: 'Update Item Price (Replace ITEM_ID and PRICE)',
+			query: 'UPDATE shop_items SET price = 75 WHERE id = \'ITEM_ID_HERE\';'
+		},
+		{
+			category: 'Item Management',
+			name: 'Update Item Name (Replace ITEM_ID and NAME)',
+			query: 'UPDATE shop_items SET name = \'New Item Name\' WHERE id = \'ITEM_ID_HERE\';'
+		},
+		{
+			category: 'Item Management',
+			name: 'Update Item Description (Replace ITEM_ID)',
+			query: 'UPDATE shop_items SET description = \'New description here\' WHERE id = \'ITEM_ID_HERE\';'
+		},
+		{
+			category: 'Item Management',
+			name: 'Change Item Type to HCB (Replace ITEM_ID)',
+			query: 'UPDATE shop_items SET type = \'hcb\' WHERE id = \'ITEM_ID_HERE\';'
+		},
+		{
+			category: 'Item Management',
+			name: 'Change Item Type to Third Party (Replace ITEM_ID)',
+			query: 'UPDATE shop_items SET type = \'third_party\' WHERE id = \'ITEM_ID_HERE\';'
+		},
+		{
+			category: 'Item Management',
+			name: 'Delete Item (Replace ITEM_ID)',
+			query: 'DELETE FROM shop_items WHERE id = \'ITEM_ID_HERE\';'
+		},
+		{
+			category: 'Item Management',
+			name: 'Add HCB MIDs to Item (Replace ITEM_ID)',
+			query: 'UPDATE shop_items SET "hcbMids" = ARRAY[\'mid1\', \'mid2\', \'mid3\'] WHERE id = \'ITEM_ID_HERE\';'
+		},
+
+		// === ORDER MANAGEMENT ===
+		{
+			category: 'Order Management',
+			name: 'Fulfill Order (Replace ORDER_ID)',
+			query: 'UPDATE shop_orders SET status = \'fulfilled\' WHERE id = \'ORDER_ID_HERE\';'
+		},
+		{
+			category: 'Order Management',
+			name: 'Reject Order (Replace ORDER_ID)',
+			query: 'UPDATE shop_orders SET status = \'rejected\' WHERE id = \'ORDER_ID_HERE\';'
+		},
+		{
+			category: 'Order Management',
+			name: 'Set Order Back to Pending (Replace ORDER_ID)',
+			query: 'UPDATE shop_orders SET status = \'pending\' WHERE id = \'ORDER_ID_HERE\';'
+		},
+		{
+			category: 'Order Management',
+			name: 'Add Memo to Order (Replace ORDER_ID and MEMO)',
+			query: 'UPDATE shop_orders SET memo = \'Your memo here\' WHERE id = \'ORDER_ID_HERE\';'
+		},
+		{
+			category: 'Order Management',
+			name: 'Delete Order (Replace ORDER_ID)',
+			query: 'DELETE FROM shop_orders WHERE id = \'ORDER_ID_HERE\';'
+		},
+		{
+			category: 'Order Management',
+			name: 'Delete All User Orders (Replace SLACK_ID)',
+			query: 'DELETE FROM shop_orders WHERE "userId" = \'SLACK_ID_HERE\';'
+		},
+		{
+			category: 'Order Management',
+			name: 'Fulfill All Pending Orders',
+			query: 'UPDATE shop_orders SET status = \'fulfilled\' WHERE status = \'pending\';'
+		},
+		{
+			category: 'Order Management',
+			name: 'Delete ALL Orders (DANGER)',
+			query: 'DELETE FROM shop_orders;'
+		},
+
+		// === ANALYTICS & REPORTS ===
+		{
+			category: 'Analytics',
+			name: 'Daily Order Stats (Last 30 Days)',
+			query: 'SELECT DATE("createdAt") as order_date, COUNT(*) as orders, SUM("priceAtOrder") as total_tokens FROM shop_orders WHERE "createdAt" >= NOW() - INTERVAL \'30 days\' GROUP BY DATE("createdAt") ORDER BY order_date DESC;'
+		},
+		{
+			category: 'Analytics',
+			name: 'Most Popular Items',
+			query: 'SELECT i.name, COUNT(*) as order_count, SUM(o."priceAtOrder") as total_revenue FROM shop_orders o JOIN shop_items i ON o."shopItemId" = i.id GROUP BY i.id, i.name ORDER BY order_count DESC;'
+		},
+		{
+			category: 'Analytics',
+			name: 'User Engagement Stats',
+			query: 'SELECT u."displayName", u.tokens as current_tokens, COUNT(o.id) as total_orders, SUM(o."priceAtOrder") as total_spent FROM users_with_tokens u LEFT JOIN shop_orders o ON u."slackId" = o."userId" GROUP BY u."slackId", u."displayName", u.tokens ORDER BY total_spent DESC;'
+		},
+		{
+			category: 'Analytics',
+			name: 'Revenue by Item Type',
+			query: 'SELECT i.type, COUNT(*) as orders, SUM(o."priceAtOrder") as total_tokens FROM shop_orders o JOIN shop_items i ON o."shopItemId" = i.id GROUP BY i.type;'
+		},
+		{
+			category: 'Analytics',
+			name: 'Orders by Status',
+			query: 'SELECT status, COUNT(*) as count, SUM("priceAtOrder") as total_value FROM shop_orders GROUP BY status;'
+		},
+		{
+			category: 'Analytics',
+			name: 'Users by Country',
+			query: 'SELECT country, COUNT(*) as user_count FROM "user" WHERE country IS NOT NULL GROUP BY country ORDER BY user_count DESC;'
+		},
+
+		// === BULK OPERATIONS ===
+		{
+			category: 'Bulk Operations',
+			name: 'Make All Users Non-Admin',
+			query: 'UPDATE "user" SET "isAdmin" = false;'
+		},
+		{
+			category: 'Bulk Operations',
+			name: 'Mark All Items as Third Party',
+			query: 'UPDATE shop_items SET type = \'third_party\';'
+		},
+		{
+			category: 'Bulk Operations',
+			name: 'Add 10% Price Increase to All Items',
+			query: 'UPDATE shop_items SET price = CEIL(price * 1.1);'
+		},
+		{
+			category: 'Bulk Operations',
+			name: 'Remove All HCB MIDs',
+			query: 'UPDATE shop_items SET "hcbMids" = NULL;'
+		},
+		{
+			category: 'Bulk Operations',
+			name: 'Reset All Order Memos',
+			query: 'UPDATE shop_orders SET memo = NULL;'
 		}
 	];
 
@@ -169,18 +413,31 @@
 		</div>
 
 		<!-- Preset Queries -->
-		<div class="mb-4">
-			<span class="block text-sm font-medium text-stone-700 mb-2">Preset Queries:</span>
-			<div class="flex flex-wrap gap-2">
-				{#each presetQueries as preset}
-					<button 
-						onclick={() => setPresetQuery(preset.query)}
-						class="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-					>
-						{preset.name}
-					</button>
-				{/each}
-			</div>
+		<div class="mb-6">
+			<span class="block text-sm font-medium text-stone-700 mb-3">Preset Queries by Category:</span>
+			
+			{#each Object.entries(presetQueries.reduce((acc, query) => {
+				if (!acc[query.category]) acc[query.category] = [];
+				acc[query.category].push(query);
+				return acc;
+			}, {})) as [category, queries]}
+				<div class="mb-4">
+					<h4 class="text-sm font-semibold text-stone-800 mb-2 border-b border-stone-200 pb-1">
+						{category}
+					</h4>
+					<div class="flex flex-wrap gap-1">
+						{#each queries as preset}
+							<button 
+								onclick={() => setPresetQuery(preset.query)}
+								class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+								title={preset.query}
+							>
+								{preset.name}
+							</button>
+						{/each}
+					</div>
+				</div>
+			{/each}
 		</div>
 
 		<!-- Query Input -->

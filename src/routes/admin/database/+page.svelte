@@ -127,22 +127,22 @@
 		{
 			category: 'Token Management',
 			name: 'Add 100 Tokens to User (Replace SLACK_ID)',
-			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") VALUES (\'SLACK_ID_HERE\', 100, NOW());'
+			query: 'INSERT INTO payouts (id, "userId", tokens, "createdAt") VALUES (gen_random_uuid()::text, \'SLACK_ID_HERE\', 100, NOW());'
 		},
 		{
 			category: 'Token Management',
 			name: 'Add 50 Tokens to User (Replace SLACK_ID)',
-			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") VALUES (\'SLACK_ID_HERE\', 50, NOW());'
+			query: 'INSERT INTO payouts (id, "userId", tokens, "createdAt") VALUES (gen_random_uuid()::text, \'SLACK_ID_HERE\', 50, NOW());'
 		},
 		{
 			category: 'Token Management',
 			name: 'Add 250 Tokens to User (Replace SLACK_ID)',
-			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") VALUES (\'SLACK_ID_HERE\', 250, NOW());'
+			query: 'INSERT INTO payouts (id, "userId", tokens, "createdAt") VALUES (gen_random_uuid()::text, \'SLACK_ID_HERE\', 250, NOW());'
 		},
 		{
 			category: 'Token Management',
 			name: 'Add Custom Tokens (Replace SLACK_ID and AMOUNT)',
-			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") VALUES (\'SLACK_ID_HERE\', 999, NOW());'
+			query: 'INSERT INTO payouts (id, "userId", tokens, "createdAt") VALUES (gen_random_uuid()::text, \'SLACK_ID_HERE\', 999, NOW());'
 		},
 		{
 			category: 'Token Management',
@@ -162,14 +162,14 @@
 		{
 			category: 'Token Management',
 			name: 'Give Everyone 100 Tokens',
-			query: 'INSERT INTO payouts ("userId", tokens, "createdAt") SELECT "slackId", 100, NOW() FROM "user";'
+			query: 'INSERT INTO payouts (id, "userId", tokens, "createdAt") SELECT gen_random_uuid()::text, "slackId", 100, NOW() FROM "user";'
 		},
 
 		// === ITEM MANAGEMENT ===
 		{
 			category: 'Item Management',
 			name: 'Create New Item (Replace VALUES)',
-			query: 'INSERT INTO shop_items (name, description, "imageUrl", price, usd_cost, type) VALUES (\'Item Name\', \'Description\', \'https://image.url\', 50, 25, \'hcb\');'
+			query: 'INSERT INTO shop_items (id, name, description, "imageUrl", price, usd_cost, type) VALUES (gen_random_uuid()::text, \'Item Name\', \'Description\', \'https://image.url\', 50, 25, \'hcb\');'
 		},
 		{
 			category: 'Item Management',

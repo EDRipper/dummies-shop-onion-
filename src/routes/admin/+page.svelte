@@ -15,6 +15,7 @@
 			<a href="/admin/users" class="boba-action motion-pop text-sm md:text-base">View Users</a>
 			<a href="/admin/orders" class="boba-action motion-pop text-sm md:text-base">View Orders</a>
 			<a href="/admin/new" class="boba-action motion-pop text-sm md:text-base">Add New Item</a>
+			<a href="/admin/database" class="boba-action motion-pop text-sm md:text-base">Database</a>
 		</div>
 	</section>
 

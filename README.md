@@ -27,3 +27,8 @@ export const db = drizzle(pool, { schema });
 export * from './schema';
 
 export { pool };
+
+===
+
+set an admin with
+psql 'url' -c "UPDATE \"user\" SET \"isAdmin\" = true WHERE \"slackId\" = 'U091DE0M4NB';"

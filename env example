@@ -1,0 +1,34 @@
+# Database Configuration
+# PostgreSQL database connection string
+DATABASE_URL="postgresql://username:password@localhost:5432/dummies_shop"
+
+# Slack OAuth Configuration
+# Public client ID (can be exposed to frontend)
+PUBLIC_SLACK_CLIENT_ID="your_slack_client_id_here"
+
+# Private Slack credentials (server-side only)
+SLACK_CLIENT_SECRET="your_slack_client_secret_here"
+SLACK_BOT_TOKEN="xoxb-your-slack-bot-token-here"
+
+# Session Management
+# Secret key for encrypting/decrypting user sessions
+SESSIONS_SECRET="your_super_secret_session_key_here_make_it_long_and_random"
+
+# File Upload Service (UploadThing)
+# Token for file upload functionality
+UPLOADTHING_TOKEN="your_uploadthing_token_here"
+
+# HCB API Configuration
+# API key for Hack Club Bank integration
+HCBAPI_KEY="your_hcb_api_key_here"
+
+# Email Service (Loops)
+# API key for sending transactional emails
+LOOPS_API_KEY="your_loops_api_key_here"
+
+# Airtable Integration (for YSWS DB filtering)
+# API key for Airtable access
+AIRTABLE_API_KEY="your_airtable_api_key_here"
+
+# Development/Production Environment
+NODE_ENV="development"

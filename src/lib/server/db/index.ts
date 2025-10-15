@@ -1,6 +1,12 @@
 import { config } from 'dotenv';
 
-// Load environment variables from .env file (best-effort)
+// Try local first, in prod this will not be present so fallback to productiion
+
+try {
+	config({ path: '.env.local' });
+} catch (e) {
+	// ignore
+}
 try {
 	config();
 } catch (e) {
@@ -24,9 +30,10 @@ if (process.env.DATABASE_URL) {
 	console.log('No database URL configured; DB initialization will be skipped');
 }
 
-// Choose DB URL in the following order:
-// 1. DATABASE_URL (explicit/production)
-// 2. LOCAL_DATABASE_URL (if and only if in local dev)
+// Choose DB URL:
+// Prefer LOCAL_DATABASE_URL when it points at localhost (developer machine).
+// Fallback to DATABASE_URL otherwise. This prevents a checked-in placeholder
+// DATABASE_URL from being chosen over a valid local URL in .env.local.
 const chooseLocal = (url?: string) => {
 	if (!url) return false;
 	try {
@@ -37,7 +44,10 @@ const chooseLocal = (url?: string) => {
 	}
 };
 
-const dbUrl = process.env.DATABASE_URL ?? (chooseLocal(process.env.LOCAL_DATABASE_URL) ? process.env.LOCAL_DATABASE_URL : undefined);
+// If a LOCAL_DATABASE_URL points at localhost, prefer it in development.
+const dbUrl = chooseLocal(process.env.LOCAL_DATABASE_URL)
+	? process.env.LOCAL_DATABASE_URL
+	: process.env.DATABASE_URL ?? undefined;
 
 if (dbUrl) {
 	pool = new Pool({ connectionString: dbUrl });

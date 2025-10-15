@@ -7,7 +7,7 @@ import { symmetric } from '$lib/server/crypto';
 import { eq } from 'drizzle-orm';
 
 const slackMiddleware: Handle = async ({ event, resolve }) => {
-	// we might not have the record yet 
+	// Might not have the record yet 
 	if (event.url.toString().includes('slack-callback')) return resolve(event);
 	if (event.url.toString().includes('/api/uploadthing')) return resolve(event);
 
@@ -25,15 +25,31 @@ const slackMiddleware: Handle = async ({ event, resolve }) => {
 			return resolve(event);
 		}
 
-	const [user] = await db
-		.select()
-		.from(usersWithTokens)
-		.where(eq(usersWithTokens.slackId, slackId!))
-		.limit(1);
-	if (!user) {
-		throw new Error(`Failed to get user ${slackId}, even when they have a valid session`);
+	// Attempt to load the user from the DB, sometimes this fails bc the user isnt created yet
+	// In this case just remove the cookie and continue as unauthenticated
+	try {
+		if (!db) {
+			// no DB configured/initialized
+			event.cookies.delete('_boba_mahad_says_hi_session', { path: '/' });
+			return resolve(event);
+		}
+
+		const [user] = await db
+			.select()
+			.from(usersWithTokens)
+			.where(eq(usersWithTokens.slackId, slackId!))
+			.limit(1);
+		if (!user) {
+			// user not found; remove cookie and continue as unauthenticated
+			event.cookies.delete('_boba_mahad_says_hi_session', { path: '/' });
+			return resolve(event);
+		}
+		event.locals.user = user;
+	} catch (err) {
+		console.error('Error loading user from DB in slackMiddleware:', err);
+		event.cookies.delete('_boba_mahad_says_hi_session', { path: '/' });
+		return resolve(event);
 	}
-	event.locals.user = user;
 
 	console.log(`slackMiddleware took ${performance.now() - start}ms`);
 	return resolve(event);
@@ -44,7 +60,7 @@ const redirectMiddleware: Handle = async ({ event, resolve }) => {
 	if (event.url.toString().includes('/api/uploadthing')) return resolve(event);
 
 	// some points like the landing page should not force login
-	const publicPaths = new Set(['/landing','/index','/rsvp/','/api/slack-callback','/robots.txt','/sitemap.xml']);
+	const publicPaths = new Set(['/','/landing','/index','/rsvp','/rsvp/','/api/slack-callback','/robots.txt','/sitemap.xml']);
 	// also allow assets without sign in
 	if (event.url.pathname.startsWith('/static') || event.url.pathname.startsWith('/assets')) return resolve(event);
 
